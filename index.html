@@ -2,8 +2,18 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>桃園市立楊梅高級中等學校｜梅岡・高山頂台地 3D 數位地景與校園全覽</title>
+  <meta name="description" content="以 Three.js 製作之桃園市立楊梅高級中等學校（梅岡・高山頂紅土台地）3D 互動網頁與 PWA 應用程式，涵蓋 16 處建築與生態地標、立體結構拆解動畫、四段晨昏星夜光影與六大篇章《梅岡誌》。" />
+  <meta name="theme-color" id="meta-theme-color" content="#b54830" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="楊梅高中 3D" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
@@ -37,6 +47,10 @@
       --font-serif: 'Noto Serif TC', serif;
       --font-sans: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
     }
 
     body[data-time="morning"] {
@@ -78,6 +92,7 @@
     html, body {
       width: 100%;
       height: 100%;
+      height: 100dvh;
       overflow: hidden;
       font-family: var(--font-sans);
       color: var(--ink-primary);
@@ -1146,63 +1161,199 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* PWA Status / Offline Toast */
+    .pwa-toast {
+      position: fixed;
+      top: calc(16px + var(--safe-top));
+      left: 50%;
+      transform: translate(-50%, -24px);
+      z-index: 55;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-strong);
+      border: 1px solid var(--border-line);
+      box-shadow: var(--shadow-lg);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-primary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.28s ease;
+      white-space: nowrap;
+    }
+
+    .pwa-toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* Responsive Breakpoints (Desktop -> Laptop/Tablet -> Mobile Portrait -> Mobile Landscape) */
+    @media (min-width: 769px) {
+      .masthead {
+        top: calc(16px + var(--safe-top));
+        left: calc(16px + var(--safe-left));
+      }
+      .top-right-bar {
+        top: calc(16px + var(--safe-top));
+        right: calc(16px + var(--safe-right));
+      }
+      .bottom-hud {
+        bottom: calc(12px + var(--safe-bottom));
+      }
+    }
+
+    @media (max-width: 1180px) and (min-width: 769px) {
+      .masthead {
+        width: 348px;
+        padding: 12px 15px;
+      }
+      .masthead-meta {
+        font-size: 11.8px;
+      }
+      .guide-drawer {
+        width: 368px;
+        top: 154px;
+      }
+      .info-card {
+        width: 336px;
+      }
+      .minimap-card {
+        width: 138px;
+      }
+      #minimap-canvas {
+        width: 118px;
+        height: 118px;
+      }
+    }
+
     @media (max-width: 920px) {
       .minimap-card, .cat-filter { display: none; }
     }
 
     @media (max-width: 768px) {
       .masthead {
-        top: 10px;
-        left: 10px;
-        width: calc(100vw - 20px);
-        padding: 10px 13px;
+        top: calc(8px + var(--safe-top));
+        left: calc(8px + var(--safe-left));
+        right: calc(8px + var(--safe-right));
+        width: auto;
+        padding: 9px 12px;
+        border-radius: 14px;
+      }
+      .masthead h1 {
+        font-size: 16.5px;
       }
       .masthead-meta { display: none; }
-      .masthead-bar { margin-top: 7px; padding-top: 7px; }
+      .masthead-bar { margin-top: 6px; padding-top: 6px; }
       .top-right-bar {
         top: auto;
-        bottom: 122px;
-        right: 10px;
-        left: 10px;
+        bottom: calc(114px + var(--safe-bottom));
+        right: calc(8px + var(--safe-right));
+        left: calc(8px + var(--safe-left));
         justify-content: space-between;
+        gap: 5px;
+      }
+      .time-btn {
+        padding: 5px 8px;
+        font-size: 11.5px;
+      }
+      .btn {
+        padding: 7px 11px;
+        font-size: 11.5px;
+        min-height: 34px;
       }
       .guide-drawer {
-        top: 94px;
-        left: 10px;
-        right: 10px;
-        bottom: 118px;
+        top: calc(88px + var(--safe-top));
+        left: calc(8px + var(--safe-left));
+        right: calc(8px + var(--safe-right));
+        bottom: calc(114px + var(--safe-bottom));
         width: auto;
       }
       .info-card {
         top: auto;
-        bottom: 164px;
-        left: 10px;
-        right: 10px;
+        bottom: calc(156px + var(--safe-bottom));
+        left: calc(8px + var(--safe-left));
+        right: calc(8px + var(--safe-right));
         width: auto;
-        max-height: 45vh;
+        max-height: 43dvh;
         overflow-y: auto;
-        padding: 14px 16px;
+        padding: 13px 15px;
         transform: translateY(24px);
       }
       .info-card.is-open { transform: translateY(0); }
       .bottom-hud {
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-        gap: 6px;
+        left: calc(8px + var(--safe-left));
+        right: calc(8px + var(--safe-right));
+        bottom: calc(8px + var(--safe-bottom));
+        gap: 5px;
+      }
+      .strip-wrapper {
+        width: 100%;
       }
       .anim-dock {
         width: 100%;
-        padding: 7px 10px;
+        padding: 6px 9px;
         border-radius: 14px;
         justify-content: space-between;
-        gap: 6px;
+        gap: 5px;
       }
       .phase-text { min-width: 0; font-size: 11px; }
       .phase-sub { display: none; }
-      .scrubber { width: 76px; }
+      .scrubber { width: 74px; }
       .pin-label { font-size: 10.5px; padding: 3px 8px 3px 6px; }
       .road-sign { display: none; }
+    }
+
+    @media (max-width: 400px) {
+      .motto-pill, #btn-labels span { display: none; }
+      #btn-labels::after { content: "標籤"; }
+      .scrubber { width: 58px; }
+      .dir-list { grid-template-columns: 1fr; }
+    }
+
+    /* Mobile Landscape Compact Mode */
+    @media (max-height: 520px) and (orientation: landscape) {
+      .masthead {
+        top: calc(6px + var(--safe-top));
+        left: calc(8px + var(--safe-left));
+        width: auto;
+        max-width: 310px;
+        padding: 7px 11px;
+      }
+      .masthead-top, .masthead-meta, .minimap-card, .road-sign { display: none; }
+      .masthead h1 { font-size: 14.5px; }
+      .masthead-bar { margin-top: 5px; padding-top: 5px; }
+      .top-right-bar {
+        top: calc(6px + var(--safe-top));
+        right: calc(8px + var(--safe-right));
+        left: auto;
+        bottom: auto;
+      }
+      .guide-drawer {
+        top: calc(52px + var(--safe-top));
+        left: calc(8px + var(--safe-left));
+        right: auto;
+        width: min(360px, 52vw);
+        bottom: calc(58px + var(--safe-bottom));
+      }
+      .info-card {
+        top: calc(52px + var(--safe-top));
+        right: calc(8px + var(--safe-right));
+        left: auto;
+        bottom: calc(58px + var(--safe-bottom));
+        width: min(320px, 44vw);
+        max-height: none;
+        overflow-y: auto;
+      }
+      .strip-wrapper { display: none; }
+      .bottom-hud {
+        bottom: calc(6px + var(--safe-bottom));
+      }
+      .anim-dock {
+        width: auto;
+        padding: 5px 10px;
+        border-radius: var(--radius-pill);
+      }
+      .phase-sub { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1224,6 +1375,8 @@
     <div class="loader-spinner"></div>
     <div class="loader-text">正在演算梅岡 PBR 環境光影與 16 處台地校園地景…</div>
   </div>
+
+  <div id="pwa-toast" class="pwa-toast" role="status" aria-live="polite"></div>
 
   <div id="canvas-container" aria-label="楊梅高中及週邊環境 3D 互動場景"></div>
   <div id="label-layer"></div>
@@ -1256,6 +1409,14 @@
             <path d="M9 20v-6l-2-3 3-3h4l3 3-2 3v6"/>
           </svg>
           <span>步入人行視角</span>
+        </button>
+
+        <button id="btn-install-pwa" class="btn btn-sm" type="button" style="display:none;" title="安裝為桌面或手機主畫面應用程式（支援離線瀏覽）">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M12 3v12m0 0-4-4m4 4 4-4"/>
+            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+          </svg>
+          <span>安裝 App</span>
         </button>
       </div>
     </div>
@@ -1664,9 +1825,19 @@
     scene.fog = new THREE.FogExp2(0xe1ddd4, 0.0016);
 
     const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.8, 1000);
-    const INITIAL_CAM_POS = new THREE.Vector3(20, 126, 178);
+    const INITIAL_CAM_BASE = new THREE.Vector3(20, 126, 178);
     const INITIAL_TARGET = new THREE.Vector3(2, 4, 2);
-    camera.position.copy(INITIAL_CAM_POS);
+
+    // 3D RWD: Dynamically scale panoramic distance & FOV on portrait mobile screens so the entire East-West campus fits
+    function getResponsiveOverviewPos() {
+      const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+      camera.fov = aspect < 0.85 ? THREE.MathUtils.clamp(40 + (0.85 - aspect) * 26, 40, 53) : 40;
+      camera.updateProjectionMatrix();
+      const zoomOut = aspect < 0.85 ? 1 + (0.85 - aspect) * 0.62 : 1.0;
+      return INITIAL_CAM_BASE.clone().multiplyScalar(zoomOut);
+    }
+
+    camera.position.copy(getResponsiveOverviewPos());
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -4242,6 +4413,9 @@
 
     function toggleGuideDrawer(forceState) {
       const next = typeof forceState === 'boolean' ? forceState : !guideDrawer.classList.contains('is-open');
+      if (next && window.innerWidth <= 1024) {
+        infoCard.classList.remove('is-open');
+      }
       guideDrawer.classList.toggle('is-open', next);
       btnOpenGuide.setAttribute('aria-expanded', String(next));
     }
@@ -4467,7 +4641,7 @@
         manualExplodeLock = false;
         btnExplode.classList.remove('is-active');
       }
-      flyTo(INITIAL_TARGET, INITIAL_CAM_POS, 1.0);
+      flyTo(INITIAL_TARGET, getResponsiveOverviewPos(), 1.0);
     }
 
     btnOverview.addEventListener('click', resetToOverview);
@@ -4643,17 +4817,95 @@
     });
 
     // ------------------------------------------------------------
-    // 12. Resize & Render Loop
+    // 12. Resize, PWA Service Worker / Install Prompt & Render Loop
     // ------------------------------------------------------------
-    window.addEventListener('resize', () => {
-      const w = window.innerWidth, h = window.innerHeight;
+    const metaThemeColor = document.getElementById('meta-theme-color');
+    const pwaToast = document.getElementById('pwa-toast');
+    const btnInstallPwa = document.getElementById('btn-install-pwa');
+    let toastTimer = null;
+
+    function showToast(msg, duration = 3200) {
+      if (!pwaToast) return;
+      pwaToast.textContent = msg;
+      pwaToast.classList.add('is-visible');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => pwaToast.classList.remove('is-visible'), duration);
+    }
+
+    // Sync browser / PWA status bar theme-color with active lighting mode
+    const THEME_HEX = { morning: '#b4cde6', day: '#b54830', dusk: '#3b4b6b', night: '#09111f' };
+    document.querySelectorAll('.time-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (metaThemeColor && THEME_HEX[btn.dataset.mode]) {
+          metaThemeColor.setAttribute('content', THEME_HEX[btn.dataset.mode]);
+        }
+      });
+    });
+
+    // PWA Install Prompt (Chrome / Edge / Android)
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (btnInstallPwa) btnInstallPwa.style.display = 'inline-flex';
+    });
+
+    if (btnInstallPwa) {
+      btnInstallPwa.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          showToast('已開始安裝「楊梅高中 3D」應用程式');
+          btnInstallPwa.style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      if (btnInstallPwa) btnInstallPwa.style.display = 'none';
+      deferredInstallPrompt = null;
+      showToast('已安裝至主畫面，支援離線開啟 3D 校園');
+    });
+
+    window.addEventListener('online', () => showToast('已恢復網路連線'));
+    window.addEventListener('offline', () => showToast('目前為離線模式（由 PWA 快取提供服務）'));
+
+    // Register PWA Service Worker (relative path for GitHub Pages compatibility)
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .then((reg) => {
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (!newWorker) return;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  showToast('校園模型已更新至最新版本');
+                }
+              });
+            });
+          })
+          .catch(() => {});
+      });
+    }
+
+    function handleResize() {
+      const w = window.innerWidth, h = Math.max(1, window.innerHeight);
       camera.aspect = w / h;
+      const aspect = w / h;
+      camera.fov = aspect < 0.85 ? THREE.MathUtils.clamp(40 + (0.85 - aspect) * 26, 40, 53) : 40;
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(w, h);
       composer.setSize(w, h);
       bloomPass.resolution.set(w, h);
       labelRenderer.setSize(w, h);
-    });
+    }
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => setTimeout(handleResize, 120));
 
     const clock = new THREE.Clock();
     function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -4685,7 +4937,25 @@
       labelRenderer.render(scene, camera);
     }
 
-    applyTimeMode('day');
+    // Apply initial mode & handle PWA Manifest Shortcut URL parameters (?time=night, ?view=explode, ?landmark=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const initTime = urlParams.get('time');
+    applyTimeMode(TIME_PRESETS[initTime] ? initTime : 'day');
+
+    if (metaThemeColor && THEME_HEX[currentTimeMode]) {
+      metaThemeColor.setAttribute('content', THEME_HEX[currentTimeMode]);
+    }
+
+    const initView = urlParams.get('view');
+    const initLandmark = urlParams.get('landmark');
+    if (initView === 'explode') {
+      manualExplodeLock = true;
+      btnExplode.classList.add('is-active');
+      flyTo(new THREE.Vector3(6, 10, 28), new THREE.Vector3(-42, 46, 86), 0.8);
+    } else if (initLandmark) {
+      selectLandmark(initLandmark);
+    }
+
     animate();
 
     requestAnimationFrame(() => {

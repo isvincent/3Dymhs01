@@ -1,0 +1,64 @@
+{
+  "id": "./index.html",
+  "name": "桃園市立楊梅高級中等學校｜梅岡 3D 數位地景與校園全覽",
+  "short_name": "楊梅高中 3D",
+  "description": "以 Three.js 建構之桃園市立楊梅高級中等學校（梅岡・高山頂紅土台地）3D 互動校園模型，支援 16 處地標導覽、校舍立體結構拆解動畫、晨昏星夜光影切換與離線瀏覽。",
+  "lang": "zh-Hant-TW",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ebe5dc",
+  "theme_color": "#b54830",
+  "categories": ["education", "navigation", "books"],
+  "icons": [
+    {
+      "src": "./icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "全景鳥瞰視角",
+      "short_name": "全景視角",
+      "description": "開啟梅岡・高山頂台地斜上方完整全景",
+      "url": "./index.html?view=overview",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "悅知樓結構拆解",
+      "short_name": "結構拆解",
+      "description": "直接檢視悅知樓五層樓板與活動中心溫水泳池立體拆解",
+      "url": "./index.html?view=explode",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "梅岡星夜模式",
+      "short_name": "星夜光影",
+      "description": "以夜間燈火與星空模式瀏覽校園",
+      "url": "./index.html?time=night",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
