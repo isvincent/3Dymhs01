@@ -1,0 +1,4697 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>桃園市立楊梅高級中等學校｜梅岡・高山頂台地 3D 數位地景與校園全覽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky-top: #c4d7e8;
+      --sky-mid: #dde5eb;
+      --sky-bottom: #ece6dc;
+      --surface-panel: rgba(250, 247, 242, 0.88);
+      --surface-strong: rgba(253, 251, 247, 0.95);
+      --surface-subtle: rgba(242, 237, 229, 0.8);
+      --ink-primary: #1d242b;
+      --ink-secondary: #4a5663;
+      --ink-muted: #727f8c;
+      --accent-laterite: #b54830;
+      --accent-laterite-hover: #9b3b25;
+      --accent-laterite-soft: rgba(181, 72, 48, 0.12);
+      --accent-pine: #2c5b44;
+      --accent-pine-soft: rgba(44, 91, 68, 0.13);
+      --accent-solar: #1d5d8c;
+      --accent-solar-soft: rgba(29, 93, 140, 0.13);
+      --accent-mesona: #6d3f7a;
+      --accent-mesona-soft: rgba(109, 63, 122, 0.13);
+      --border-line: rgba(29, 36, 43, 0.13);
+      --shadow-lg: 0 18px 46px rgba(18, 24, 31, 0.16), 0 3px 10px rgba(18, 24, 31, 0.06);
+      --shadow-sm: 0 6px 18px rgba(18, 24, 31, 0.09);
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+      --font-serif: 'Noto Serif TC', serif;
+      --font-sans: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    body[data-time="morning"] {
+      --sky-top: #b4cde6;
+      --sky-mid: #dbe6ef;
+      --sky-bottom: #f4eadc;
+    }
+
+    body[data-time="dusk"] {
+      --sky-top: #3b4b6b;
+      --sky-mid: #b87960;
+      --sky-bottom: #eab887;
+    }
+
+    body[data-time="night"] {
+      --sky-top: #09111f;
+      --sky-mid: #132036;
+      --sky-bottom: #1f2f47;
+      --surface-panel: rgba(19, 27, 38, 0.87);
+      --surface-strong: rgba(22, 31, 44, 0.95);
+      --surface-subtle: rgba(30, 41, 57, 0.84);
+      --ink-primary: #f2efe9;
+      --ink-secondary: #b9c4d0;
+      --ink-muted: #8493a4;
+      --border-line: rgba(242, 239, 233, 0.14);
+      --accent-laterite-soft: rgba(224, 106, 78, 0.2);
+      --accent-pine-soft: rgba(78, 168, 124, 0.18);
+      --accent-solar-soft: rgba(82, 168, 232, 0.18);
+      --accent-mesona-soft: rgba(184, 128, 204, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      color: var(--ink-primary);
+      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 52%, var(--sky-bottom) 100%);
+      transition: background 0.85s ease, color 0.3s ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      z-index: 1;
+    }
+
+    #label-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    /* 3D Floating Architectural Pins */
+    .pin-label {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 8px;
+      background: var(--surface-strong);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 4px 12px rgba(15, 20, 26, 0.16);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-primary);
+      white-space: nowrap;
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      transform: translate(-50%, -100%);
+      margin-top: -8px;
+    }
+
+    .pin-label:hover {
+      border-color: var(--accent-laterite);
+      transform: translate(-50%, -108%) scale(1.05);
+    }
+
+    .pin-label.is-active {
+      background: var(--accent-laterite);
+      border-color: var(--accent-laterite);
+      color: #ffffff;
+      transform: translate(-50%, -112%) scale(1.08);
+      box-shadow: 0 8px 22px rgba(181, 72, 48, 0.42);
+    }
+
+    .pin-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-laterite);
+      flex-shrink: 0;
+    }
+
+    .pin-label.cat-sport .pin-dot { background: var(--accent-solar); }
+    .pin-label.cat-eco .pin-dot { background: var(--accent-mesona); }
+    .pin-label.cat-env .pin-dot { background: var(--accent-pine); }
+    .pin-label.is-active .pin-dot { background: #ffffff; }
+
+    /* 3D Subtle Street & Direction Badges */
+    .road-sign {
+      pointer-events: none;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(34, 42, 50, 0.72);
+      color: #f4f1ea;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+    }
+
+    .road-sign.is-dir {
+      background: rgba(44, 91, 68, 0.85);
+      border-color: rgba(255, 255, 255, 0.32);
+    }
+
+    /* Structural Exploded Floor Tags */
+    .floor-tag {
+      pointer-events: none;
+      padding: 4px 10px;
+      background: rgba(24, 31, 38, 0.92);
+      color: #faf7f2;
+      border-left: 3px solid var(--accent-laterite);
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.26);
+      transition: opacity 0.25s ease;
+    }
+
+    /* Top-Left Masthead */
+    .masthead {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 15;
+      width: min(404px, calc(100vw - 32px));
+      padding: 14px 18px;
+      background: var(--surface-panel);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .masthead-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .masthead-kicker {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent-laterite);
+      letter-spacing: 0.03em;
+    }
+
+    body[data-time="night"] .masthead-kicker { color: #ee8266; }
+
+    .kicker-bar {
+      width: 14px;
+      height: 2px;
+      background: currentColor;
+      display: inline-block;
+    }
+
+    .motto-pill {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-laterite-soft);
+      color: var(--accent-laterite);
+    }
+
+    body[data-time="night"] .motto-pill { color: #f4977f; }
+
+    .masthead h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(18px, 2vw, 21.5px);
+      font-weight: 700;
+      line-height: 1.28;
+      letter-spacing: 0.02em;
+    }
+
+    .masthead-meta {
+      margin-top: 5px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--ink-secondary);
+      text-wrap: pretty;
+    }
+
+    .masthead-bar {
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid var(--border-line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .masthead-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons */
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border-line);
+      background: var(--surface-strong);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--ink-primary);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 8px 13px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.16s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-laterite);
+      transform: translateY(-1px);
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent-laterite);
+      outline-offset: 2px;
+    }
+
+    .btn-sm {
+      padding: 5px 11px;
+      font-size: 11.5px;
+    }
+
+    .btn-primary {
+      background: var(--ink-primary);
+      border-color: var(--ink-primary);
+      color: var(--surface-strong);
+    }
+
+    body[data-time="night"] .btn-primary {
+      background: #e8e3da;
+      border-color: #e8e3da;
+      color: #16202b;
+    }
+
+    .btn-accent {
+      background: var(--accent-laterite);
+      border-color: var(--accent-laterite);
+      color: #ffffff;
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-laterite-hover);
+      border-color: var(--accent-laterite-hover);
+      color: #ffffff;
+    }
+
+    .btn-toggle.is-active {
+      background: var(--accent-laterite-soft);
+      border-color: var(--accent-laterite);
+      color: var(--accent-laterite);
+    }
+
+    body[data-time="night"] .btn-toggle.is-active {
+      color: #f3957d;
+      border-color: #e37357;
+    }
+
+    .svg-icon {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Top-Right Environment & Overview Toolbar */
+    .top-right-bar {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .segmented-time {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px;
+      background: var(--surface-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .time-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+
+    .time-btn:hover { color: var(--ink-primary); }
+
+    .time-btn.is-active {
+      background: var(--accent-laterite);
+      color: #ffffff;
+    }
+
+    /* Left Collapsible Knowledge Drawer: 《梅岡誌》 (6 Chapters) */
+    .guide-drawer {
+      position: fixed;
+      top: 162px;
+      left: 16px;
+      bottom: 136px;
+      width: min(432px, calc(100vw - 32px));
+      z-index: 18;
+      background: var(--surface-strong);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateX(calc(-100% - 28px));
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+    }
+
+    .guide-drawer.is-open {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-header {
+      padding: 13px 18px 10px;
+      border-bottom: 1px solid var(--border-line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .drawer-header h2 {
+      font-family: var(--font-serif);
+      font-size: 16.5px;
+      font-weight: 700;
+    }
+
+    .drawer-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      padding: 7px 12px;
+      background: var(--surface-subtle);
+      border-bottom: 1px solid var(--border-line);
+    }
+
+    .tab-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 4px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background-color 0.16s ease, color 0.16s ease;
+    }
+
+    .tab-btn.is-active {
+      background: var(--surface-strong);
+      color: var(--accent-laterite);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    body[data-time="night"] .tab-btn.is-active { color: #f3957d; }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px 18px 20px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.is-active { display: block; }
+
+    .section-lead {
+      font-size: 12.8px;
+      line-height: 1.66;
+      color: var(--ink-secondary);
+      margin-bottom: 13px;
+      text-wrap: pretty;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+    }
+
+    .stat-val {
+      font-family: var(--font-serif);
+      font-size: 17.5px;
+      font-weight: 700;
+      color: var(--accent-laterite);
+    }
+
+    body[data-time="night"] .stat-val { color: #f0886d; }
+
+    .stat-lbl {
+      font-size: 11px;
+      color: var(--ink-secondary);
+      margin-top: 2px;
+    }
+
+    .diagram-card {
+      padding: 11px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+      margin-bottom: 13px;
+    }
+
+    .diagram-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--ink-primary);
+    }
+
+    /* Transit Route Badges */
+    .transit-grid {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .transit-item {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .route-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--accent-solar);
+      color: #ffffff;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .route-pill.is-hwy { background: var(--accent-pine); }
+    .route-pill.is-rail { background: var(--accent-laterite); }
+
+    .transit-info h4 {
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .transit-info p {
+      font-size: 11.5px;
+      line-height: 1.52;
+      color: var(--ink-secondary);
+    }
+
+    /* Guided Tour & Directory Cards */
+    .tour-list, .dept-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tour-card {
+      text-align: left;
+      appearance: none;
+      width: 100%;
+      padding: 10px 13px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+      color: var(--ink-primary);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: border-color 0.18s ease, transform 0.16s ease;
+    }
+
+    .tour-card:hover {
+      border-color: var(--accent-laterite);
+      transform: translateY(-1px);
+    }
+
+    .tour-card.is-running {
+      border-color: var(--accent-laterite);
+      background: var(--accent-laterite-soft);
+    }
+
+    .tour-card-title {
+      font-size: 12.8px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tour-card-desc {
+      font-size: 11.5px;
+      color: var(--ink-secondary);
+      margin-top: 4px;
+      line-height: 1.48;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      margin: 12px 0 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+      color: var(--ink-primary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+    }
+
+    .search-input:focus {
+      outline: 2px solid var(--accent-laterite);
+      border-color: transparent;
+    }
+
+    .dir-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .dir-btn {
+      appearance: none;
+      text-align: left;
+      padding: 7px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+      color: var(--ink-primary);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    .dir-btn:hover { border-color: var(--accent-laterite); }
+
+    /* Timeline & Alumni Cards */
+    .history-timeline {
+      position: relative;
+      padding-left: 16px;
+      border-left: 2px solid var(--border-line);
+      display: grid;
+      gap: 13px;
+    }
+
+    .tl-item { position: relative; }
+
+    .tl-item::before {
+      content: "";
+      position: absolute;
+      left: -21px;
+      top: 5px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-laterite);
+    }
+
+    .tl-year {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-laterite);
+    }
+
+    body[data-time="night"] .tl-year { color: #f0886d; }
+
+    .tl-heading {
+      font-size: 12.8px;
+      font-weight: 700;
+      margin: 2px 0 3px;
+    }
+
+    .tl-desc {
+      font-size: 11.8px;
+      line-height: 1.56;
+      color: var(--ink-secondary);
+    }
+
+    .jump-link {
+      appearance: none;
+      border: none;
+      background: var(--accent-laterite-soft);
+      color: var(--accent-laterite);
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      margin-top: 5px;
+      display: inline-block;
+    }
+
+    body[data-time="night"] .jump-link { color: #f3957d; }
+
+    .dept-card {
+      padding: 11px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-line);
+      background: var(--surface-subtle);
+    }
+
+    .dept-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .dept-name {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .dept-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-solar-soft);
+      color: var(--accent-solar);
+    }
+
+    .dept-tag.is-mesona {
+      background: var(--accent-mesona-soft);
+      color: var(--accent-mesona);
+    }
+
+    body[data-time="night"] .dept-tag { color: #82c4f8; }
+    body[data-time="night"] .dept-tag.is-mesona { color: #d8a2ec; }
+
+    .dept-body {
+      font-size: 11.8px;
+      line-height: 1.56;
+      color: var(--ink-secondary);
+    }
+
+    /* Right Selected Landmark Detail Card */
+    .info-card {
+      position: fixed;
+      top: 66px;
+      right: 16px;
+      z-index: 16;
+      width: min(376px, calc(100vw - 32px));
+      background: var(--surface-strong);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 18px 20px;
+      transform: translateX(calc(100% + 28px));
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+    }
+
+    .info-card.is-open {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .info-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .info-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-laterite-soft);
+      color: var(--accent-laterite);
+      margin-bottom: 5px;
+    }
+
+    .info-badge.cat-sport { background: var(--accent-solar-soft); color: var(--accent-solar); }
+    .info-badge.cat-eco { background: var(--accent-mesona-soft); color: var(--accent-mesona); }
+    .info-badge.cat-env { background: var(--accent-pine-soft); color: var(--accent-pine); }
+
+    body[data-time="night"] .info-badge.cat-core { color: #f3957d; }
+    body[data-time="night"] .info-badge.cat-sport { color: #82c4f8; }
+    body[data-time="night"] .info-badge.cat-eco { color: #daa4ee; }
+    body[data-time="night"] .info-badge.cat-env { color: #7cd4a6; }
+
+    .info-title {
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .icon-close {
+      appearance: none;
+      border: 1px solid var(--border-line);
+      background: transparent;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      color: var(--ink-secondary);
+      flex-shrink: 0;
+    }
+
+    .icon-close:hover {
+      border-color: var(--accent-laterite);
+      color: var(--ink-primary);
+    }
+
+    .info-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .info-metric-cell {
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-line);
+    }
+
+    .metric-k {
+      display: block;
+      font-size: 10px;
+      color: var(--ink-muted);
+    }
+
+    .metric-v {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 1px;
+      color: var(--ink-primary);
+    }
+
+    .info-summary {
+      margin-top: 10px;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: var(--ink-secondary);
+      text-wrap: pretty;
+    }
+
+    .info-specs {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-line);
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+
+    .info-specs li {
+      font-size: 11.8px;
+      line-height: 1.5;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .info-specs li::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-laterite);
+      flex-shrink: 0;
+      transform: translateY(-1px);
+    }
+
+    .info-footer {
+      margin-top: 13px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    /* Bottom-Left Live 2D Topographic Radar Map */
+    .minimap-card {
+      position: fixed;
+      left: 16px;
+      bottom: 138px;
+      z-index: 12;
+      width: 158px;
+      padding: 8px 9px 7px;
+      background: var(--surface-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .minimap-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      margin-bottom: 5px;
+    }
+
+    .minimap-compass {
+      font-family: var(--font-mono);
+      color: var(--accent-laterite);
+    }
+
+    #minimap-canvas {
+      display: block;
+      width: 138px;
+      height: 138px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* Bottom Category Filter + Landmark Chips + Animation Dock */
+    .bottom-hud {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 12px;
+      z-index: 14;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      pointer-events: none;
+    }
+
+    .strip-wrapper {
+      pointer-events: auto;
+      max-width: min(1080px, 100%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 7px;
+      background: var(--surface-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .cat-filter {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding-right: 6px;
+      border-right: 1px solid var(--border-line);
+      flex-shrink: 0;
+    }
+
+    .filter-pill {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ink-muted);
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .filter-pill.is-active {
+      background: var(--ink-primary);
+      color: var(--surface-strong);
+    }
+
+    .landmark-strip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .landmark-strip::-webkit-scrollbar { display: none; }
+
+    .chip {
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.16s ease, color 0.16s ease;
+    }
+
+    .chip:hover {
+      background: var(--surface-subtle);
+      color: var(--ink-primary);
+    }
+
+    .chip.is-active {
+      background: var(--accent-laterite);
+      color: #ffffff;
+    }
+
+    .chip.is-hidden { display: none; }
+
+    .anim-dock {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      padding: 8px 14px;
+      background: var(--surface-strong);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .timeline-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 4px;
+    }
+
+    .phase-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-primary);
+      min-width: 186px;
+    }
+
+    .phase-sub {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 400;
+      color: var(--ink-muted);
+    }
+
+    .scrubber {
+      width: 128px;
+      height: 5px;
+      accent-color: var(--accent-laterite);
+      cursor: pointer;
+    }
+
+    /* Loading Overlay */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #c4d7e8 0%, #ece6dc 100%);
+      transition: opacity 0.45s ease;
+    }
+
+    #loader.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-spinner {
+      width: 38px;
+      height: 38px;
+      border: 3px solid rgba(181, 72, 48, 0.2);
+      border-top-color: #b54830;
+      border-radius: 50%;
+      animation: spin 0.85s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    .loader-text {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 700;
+      color: #1d242b;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 920px) {
+      .minimap-card, .cat-filter { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .masthead {
+        top: 10px;
+        left: 10px;
+        width: calc(100vw - 20px);
+        padding: 10px 13px;
+      }
+      .masthead-meta { display: none; }
+      .masthead-bar { margin-top: 7px; padding-top: 7px; }
+      .top-right-bar {
+        top: auto;
+        bottom: 122px;
+        right: 10px;
+        left: 10px;
+        justify-content: space-between;
+      }
+      .guide-drawer {
+        top: 94px;
+        left: 10px;
+        right: 10px;
+        bottom: 118px;
+        width: auto;
+      }
+      .info-card {
+        top: auto;
+        bottom: 164px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-height: 45vh;
+        overflow-y: auto;
+        padding: 14px 16px;
+        transform: translateY(24px);
+      }
+      .info-card.is-open { transform: translateY(0); }
+      .bottom-hud {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        gap: 6px;
+      }
+      .anim-dock {
+        width: 100%;
+        padding: 7px 10px;
+        border-radius: 14px;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      .phase-text { min-width: 0; font-size: 11px; }
+      .phase-sub { display: none; }
+      .scrubber { width: 76px; }
+      .pin-label { font-size: 10.5px; padding: 3px 8px 3px 6px; }
+      .road-sign { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .info-card, .guide-drawer, .btn, .pin-label { transition: none; }
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body data-time="day">
+  <div id="loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">正在演算梅岡 PBR 環境光影與 16 處台地校園地景…</div>
+  </div>
+
+  <div id="canvas-container" aria-label="楊梅高中及週邊環境 3D 互動場景"></div>
+  <div id="label-layer"></div>
+
+  <!-- Top-Left Architectural Masthead -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <div class="masthead-kicker">
+        <span class="kicker-bar"></span>
+        <span>梅岡・高山頂紅土台地南緣</span>
+      </div>
+      <span class="motto-pill">梅岡 70+・迎曦御風</span>
+    </div>
+    <h1>桃園市立楊梅高級中等學校</h1>
+    <p class="masthead-meta">
+      桃園市楊梅區高獅路 5 號｜海拔約 190m 紅土礫石台地，融合日字型教學院落、仙草生態農園、光電球場與週邊埤塘生活圈。
+    </p>
+    <div class="masthead-bar">
+      <div class="masthead-actions">
+        <button id="btn-open-guide" class="btn btn-sm btn-accent" type="button" aria-expanded="false">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+          </svg>
+          <span>《梅岡誌》六大篇章・導覽</span>
+        </button>
+
+        <button id="btn-street-view" class="btn btn-sm btn-toggle" type="button" title="降至人行視角仰望梅岡精神堡壘與悅知樓">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="5" r="2.5"/>
+            <path d="M9 20v-6l-2-3 3-3h4l3 3-2 3v6"/>
+          </svg>
+          <span>步入人行視角</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Top-Right Time-of-Day Lighting & Panoramic Overview Controls -->
+  <div class="top-right-bar">
+    <div class="segmented-time" role="group" aria-label="日照與時段光影切換">
+      <button class="time-btn" data-mode="morning" type="button">晨曦</button>
+      <button class="time-btn is-active" data-mode="day" type="button">晴晝</button>
+      <button class="time-btn" data-mode="dusk" type="button">夕照</button>
+      <button class="time-btn" data-mode="night" type="button">星夜</button>
+    </div>
+
+    <button id="btn-labels" class="btn btn-toggle is-active" type="button" title="顯示或隱藏 3D 地標與道路標籤">
+      <span>地標與路標</span>
+    </button>
+
+    <button id="btn-overview" class="btn btn-primary" type="button">
+      <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      <span>回到全景</span>
+    </button>
+  </div>
+
+  <!-- Left Collapsible Editorial Knowledge Drawer: 《梅岡誌》 (6 Chapters) -->
+  <section id="guide-drawer" class="guide-drawer" aria-label="梅岡校園與地景深度誌">
+    <div class="drawer-header">
+      <h2>《梅岡誌》地理・交通・校史・人文圖鑑</h2>
+      <button id="btn-close-guide" class="icon-close" type="button" aria-label="關閉梅岡誌">
+        <svg class="svg-icon" viewBox="0 0 24 24">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-tabs" role="tablist">
+      <button class="tab-btn is-active" data-tab="geo" role="tab" type="button">1. 台地地理</button>
+      <button class="tab-btn" data-tab="transit" role="tab" type="button">2. 交通路網</button>
+      <button class="tab-btn" data-tab="history" role="tab" type="button">3. 梅岡校史</button>
+      <button class="tab-btn" data-tab="academics" role="tab" type="button">4. 學制與仙草</button>
+      <button class="tab-btn" data-tab="culture" role="tab" type="button">5. 校友與人文</button>
+      <button class="tab-btn" data-tab="tours" role="tab" type="button">6. 路線與索引</button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Chapter 1: Geography -->
+      <div id="tab-geo" class="tab-pane is-active">
+        <p class="section-lead">
+          楊梅高中位處<strong>桃園楊梅高山頂紅土台地南緣</strong>，地方別稱「梅岡」。台地頂部平坦開闊，容納 400 公尺標準操場與日字型教學群；南側與西南側則順應紅土礫石層邊坡緩降，造就極富層次的迎賓坡道與遠眺視野。
+        </p>
+
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-val">5.4 公頃</div>
+            <div class="stat-lbl">高山頂台地完整校地</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">EL. 190m</div>
+            <div class="stat-lbl">台地平均海拔高程</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">16 處地標</div>
+            <div class="stat-lbl">可互動 3D 建築與生態點</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">5 大光電群</div>
+            <div class="stat-lbl">球場與校舍太陽能屋頂</div>
+          </div>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-title">高山頂台地南北向地形剖面示意（北 → 南）</div>
+          <svg viewBox="0 0 340 96" width="100%" height="96" aria-label="北高南低台地地形剖面圖">
+            <defs>
+              <linearGradient id="terraGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#b54830" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#6e5a4f" stop-opacity="0.22"/>
+              </linearGradient>
+            </defs>
+            <path d="M10,34 L195,34 Q235,35 268,54 L330,76 L330,88 L10,88 Z" fill="url(#terraGrad)" stroke="#b54830" stroke-width="2"/>
+            <rect x="28" y="22" width="32" height="12" rx="2" fill="#1d5d8c"/>
+            <rect x="72" y="30" width="46" height="4" rx="1" fill="#c2543d"/>
+            <rect x="130" y="16" width="38" height="18" rx="2" fill="#7d6b5d"/>
+            <rect x="240" y="39" width="28" height="13" rx="2" fill="#516878"/>
+            <text x="22" y="17" font-size="9.5" fill="currentColor">北：光電球場</text>
+            <text x="74" y="25" font-size="9.5" fill="currentColor">400m操場</text>
+            <text x="130" y="12" font-size="9.5" fill="currentColor">悅知・蘊慧樓</text>
+            <text x="233" y="34" font-size="9.5" fill="currentColor">南坡：活動中心</text>
+            <text x="273" y="68" font-size="9.5" fill="currentColor">高獅路岔口</text>
+          </svg>
+        </div>
+
+        <p class="section-lead" style="margin-bottom:0;">
+          <strong>微氣候與建築回應：</strong>冬季受桃園台地東北季風吹拂，校園以「日」字型合院（悅知、蘊慧、御風、迎曦）減緩風速，並於東側高獅路保留茂密樟樹與相思林緩衝帶。
+        </p>
+      </div>
+
+      <!-- Chapter 2: Transit & Surrounding Connectivity -->
+      <div id="tab-transit" class="tab-pane">
+        <p class="section-lead">
+          校園東臨<strong>高獅路 5 號</strong>，西北環繞<strong>梅岡巷</strong>，串聯台鐵楊梅火車站、國道一號幼獅交流道與周邊生活圈：
+        </p>
+
+        <div class="transit-grid">
+          <div class="transit-item">
+            <span class="route-pill is-rail">台鐵＋客運</span>
+            <div class="transit-info">
+              <h4>台鐵楊梅火車站 ⇄ 楊梅高中（車程約 10 分鐘）</h4>
+              <p>可由楊梅車站轉乘桃園市公車 <strong>T621、T623、251、L608</strong> 直達「楊梅高中」站牌（設於梅岡巷及高獅路側），或沿台地坡道步行約 20–25 分鐘上山。</p>
+            </div>
+          </div>
+
+          <div class="transit-item">
+            <span class="route-pill is-hwy">國道 1 號</span>
+            <div class="transit-info">
+              <h4>幼獅交流道與學生專車轉運（車程約 5–8 分鐘）</h4>
+              <p>由高獅路往東北銜接梅高路、青年路可直上<strong>幼獅交流道</strong>；大溪線、內壢線等多線學生通學專車亦以此走廊作為重要停靠動脈。</p>
+            </div>
+          </div>
+
+          <div class="transit-item">
+            <span class="route-pill">周邊生活圈</span>
+            <div class="transit-info">
+              <h4>鄰里社區・醫療與同源學區</h4>
+              <p>西北緊鄰<strong>梅中國宅</strong>與梅岡巷 14 弄社區；東北鄰近幼獅工業區與獵焰咖啡；南下連結同源之<strong>楊梅國中</strong>、瑞梅國小與怡仁綜合醫院。</p>
+            </div>
+          </div>
+        </div>
+
+        <button class="jump-link" data-jump="gaoshi_gate" type="button">聚焦高獅路 5 號正門</button>
+        <button class="jump-link" data-jump="meigang_community" type="button">聚焦梅岡巷公車站牌</button>
+      </div>
+
+      <!-- Chapter 3: History Timeline -->
+      <div id="tab-history" class="tab-pane">
+        <p class="section-lead">
+          校訓<strong>「愛自己、愛學校、愛國家」</strong>凝聚超過七十五載的「梅岡精神」，見證南桃園教育發展史：
+        </p>
+        <div class="history-timeline">
+          <div class="tl-item">
+            <div class="tl-year">1948（民國 37 年）</div>
+            <div class="tl-heading">創立桃園縣立楊梅初級中學</div>
+            <div class="tl-desc">首任校長張芳杰創校，1951 年增設高中部為「楊梅中學」，推崇六育並行與戶外美術寫生。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1968（民國 57 年）</div>
+            <div class="tl-heading">接收啟明初中校地・改制省立楊梅高中</div>
+            <div class="tl-desc">九年國教實施，初中部獨立為楊梅國中，高中部於現址高山頂設校，首任校長史振鼎訂立「梅岡精神」三愛校訓。</div>
+            <button class="jump-link" data-jump="laterite_art" type="button">聚焦啟明樓／紅土藝廊</button>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1974（民國 63 年）</div>
+            <div class="tl-heading">設立「梅岡精神堡壘」</div>
+            <div class="tl-desc">於校門內側松林圓環建立高聳入雲的文筆鋒碑體，象徵校運昌隆與硬頸向學風範。</div>
+            <button class="jump-link" data-jump="spirit_fort" type="button">聚焦梅岡精神堡壘</button>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2000 – 2008</div>
+            <div class="tl-heading">改隸國立楊梅高中・創立紅土藝術空間</div>
+            <div class="tl-desc">2000 年改名國立楊梅高中；2008 年於啟明樓四樓成立「紅土藝術空間」，深耕在地美學策展。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2018 – 2021</div>
+            <div class="tl-heading">改隸桃園市立高中・新悅知樓啟用</div>
+            <div class="tl-desc">2018 年改隸為「桃園市立楊梅高級中等學校」，2019 年復設體育班；2021 年底地上 5 層新綜合教學大樓（悅知樓）落成啟用。</div>
+            <button class="jump-link" data-jump="yuezhi" type="button">聚焦新悅知樓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 4: Academics & Mesona School-Based Curriculum -->
+      <div id="tab-academics" class="tab-pane">
+        <p class="section-lead">
+          兼具普通科升學、雙語國際、技職實作與全國聞名的<strong>「仙旅奇緣」在地仙草跨領域校本課程</strong>：
+        </p>
+        <div class="dept-list">
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">「仙旅奇緣」校本課程＆水生植物復育</span>
+              <span class="dept-tag is-mesona">校園生態農園</span>
+            </div>
+            <div class="dept-body">
+              攜手楊梅區農會扦插種植<strong>桃園二號仙草</strong>，融合生物、化學萃取與家政實作；並復育披針葉水蓑衣、水杉菜等台灣原生水生植物。
+            </div>
+            <button class="jump-link" data-jump="eco_garden" type="button">查看仙草與水生植物園</button>
+          </div>
+
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">普通科（含雙語實驗班）</span>
+              <span class="dept-tag">悅知樓・日新樓</span>
+            </div>
+            <div class="dept-body">
+              推動 CLIL 雙語整合教學與日、韓國際教育旅行，結合圖書館自主學習空間。
+            </div>
+            <button class="jump-link" data-jump="yuezhi" type="button">查看悅知樓教學核心</button>
+          </div>
+
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">電子科・資訊科（附設職業類科）</span>
+              <span class="dept-tag">工科實習大樓</span>
+            </div>
+            <div class="dept-body">
+              具備單晶片、數位邏輯、微電腦應用與電腦網路工場，強化實作檢定與科技研發能力。
+            </div>
+            <button class="jump-link" data-jump="tech_workshop" type="button">查看工科實習大樓</button>
+          </div>
+
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">體育班（柔道・角力・跆拳道・田徑）</span>
+              <span class="dept-tag">操場・活動中心</span>
+            </div>
+            <div class="dept-body">
+              全中運奪牌傳統強校，結合 400m 標準田徑場、活動中心綜合球場與溫水泳池進行科學化訓練。
+            </div>
+            <button class="jump-link" data-jump="sports_track" type="button">查看田徑與球類場地</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 5: Alumni & Campus Culture -->
+      <div id="tab-culture" class="tab-pane">
+        <p class="section-lead">
+          七十餘年來孕育台灣藝壇巨擘與蓬勃學風，凝鍊出「梅岡 70・迎曦御風」的人文傳統：
+        </p>
+        <div class="dept-list">
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">藝壇大師搖籃：謝孝德・何恆雄</span>
+              <span class="dept-tag">傑出校友典範</span>
+            </div>
+            <div class="dept-body">
+              水彩與寫實畫壇巨擘<strong>謝孝德</strong>（就讀梅高時即入選世界中學生美展、後任師大教授）與雕塑大師<strong>何恆雄</strong>（前臺藝大美術學院院長、台灣公共藝術先鋒）皆畢業於楊梅高中，奠定深厚美育根基。
+            </div>
+            <button class="jump-link" data-jump="laterite_art" type="button">前往紅土藝術空間</button>
+          </div>
+
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">《梅高青年》校刊與梅岡文學獎</span>
+              <span class="dept-tag">發行逾 70 期</span>
+            </div>
+            <div class="dept-body">
+              學生校刊《梅高青年》榮獲全國高級中等學校校刊競賽銀質獎肯定，每年舉辦小說、散文、新詩「梅岡文學獎」與「木棉獎」音樂比賽。
+            </div>
+          </div>
+
+          <div class="dept-card">
+            <div class="dept-head">
+              <span class="dept-name">「為梅岡而跑」校慶路跑與社團展演</span>
+              <span class="dept-tag">校園年度盛事</span>
+            </div>
+            <div class="dept-body">
+              結合高山頂台地坡道與周邊林蔭道路舉辦路跑活動，並於活動中心舞台及雙中庭展開熱音、熱舞、管樂等多元社團成果發表。
+            </div>
+            <button class="jump-link" data-jump="activity_center" type="button">前往學生活動中心</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 6: 4 Guided Tours & Searchable 16-Landmark Directory -->
+      <div id="tab-tours" class="tab-pane">
+        <p class="section-lead" style="margin-bottom:8px;">
+          選擇主題路線即可自動飛覽各站並開啟建築解說（拖曳畫面可隨時自由接管）：
+        </p>
+        <div class="tour-list">
+          <button class="tour-card" data-tour="campus" type="button">
+            <div class="tour-card-title">
+              <span>路線 A｜梅高新生空間巡禮（7 站）</span>
+              <span style="color:var(--accent-laterite);">啟動巡禮</span>
+            </div>
+            <div class="tour-card-desc">高獅路校門 → 梅岡精神堡壘 → 悅知樓 → 蘊慧樓 → 御風樓雙中庭 → 400m 操場 → 活動中心</div>
+          </button>
+
+          <button class="tour-card" data-tour="green" type="button">
+            <div class="tour-card-title">
+              <span>路線 B｜智慧綠能與科技實作（5 站）</span>
+              <span style="color:var(--accent-solar);">啟動巡禮</span>
+            </div>
+            <div class="tour-card-desc">北側太陽能光電球場 → 工科實習大樓 → 日新樓 → 御風樓光電頂 → 悅知樓綠建築</div>
+          </button>
+
+          <button class="tour-card" data-tour="eco_art" type="button">
+            <div class="tour-card-title">
+              <span>路線 C｜仙草生態與紅土人文線（5 站）</span>
+              <span style="color:var(--accent-mesona);">啟動巡禮</span>
+            </div>
+            <div class="tour-card-desc">仙旅奇緣生態農園 → 紅土藝術空間 → 東側樟樹白鷺林帶 → 桃園台地埤塘 → 週邊咖啡聚落</div>
+          </button>
+
+          <button class="tour-card" data-tour="streets" type="button">
+            <div class="tour-card-title">
+              <span>路線 D｜高山頂街廓與通學生活圈（4 站）</span>
+              <span style="color:var(--accent-pine);">啟動巡禮</span>
+            </div>
+            <div class="tour-card-desc">高獅路 5 號正門 → 梅岡巷與梅中國宅 → 桃園台地埤塘 → 週邊咖啡與東側廠區</div>
+          </button>
+        </div>
+
+        <input id="landmark-search" class="search-input" type="search" placeholder="搜尋 16 處建築、道路或生態地標（例如：仙草、泳池、高獅路）…" />
+        <div id="directory-grid" class="dir-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Right Selected Landmark Detail Card -->
+  <aside id="info-card" class="info-card" aria-live="polite">
+    <div class="info-header">
+      <div>
+        <span id="info-badge" class="info-badge cat-core">核心校舍</span>
+        <h2 id="info-title" class="info-title">悅知樓（新綜合教學大樓）</h2>
+      </div>
+      <button id="info-close" class="icon-close" type="button" aria-label="關閉說明">
+        <svg class="svg-icon" viewBox="0 0 24 24">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="info-metrics" class="info-metrics"></div>
+    <p id="info-summary" class="info-summary"></p>
+    <ul id="info-specs" class="info-specs"></ul>
+
+    <div class="info-footer">
+      <button id="info-prev-btn" class="btn btn-sm" type="button">上一處</button>
+      <button id="info-next-btn" class="btn btn-sm btn-accent" type="button">下一處地標</button>
+      <button id="info-back-btn" class="btn btn-sm" type="button">回到全景</button>
+    </div>
+  </aside>
+
+  <!-- Bottom-Left Live 2D Topographic Radar Map -->
+  <div class="minimap-card" title="點擊小地圖可快速切換視角方位">
+    <div class="minimap-head">
+      <span>即時方位雷達圖</span>
+      <span class="minimap-compass">N ▲</span>
+    </div>
+    <canvas id="minimap-canvas" width="276" height="276"></canvas>
+  </div>
+
+  <!-- Bottom Category Filter + Landmark Quick Selector + 3D Animation Controls -->
+  <div class="bottom-hud">
+    <div class="strip-wrapper">
+      <div class="cat-filter" role="group" aria-label="地標分類篩選">
+        <button class="filter-pill is-active" data-filter="all" type="button">全部 16</button>
+        <button class="filter-pill" data-filter="core" type="button">校舍</button>
+        <button class="filter-pill" data-filter="sport" type="button">運動綠能</button>
+        <button class="filter-pill" data-filter="eco" type="button">生態人文</button>
+        <button class="filter-pill" data-filter="env" type="button">週邊街廓</button>
+      </div>
+      <nav id="landmark-strip" class="landmark-strip" aria-label="主要建築與週邊地標導覽"></nav>
+    </div>
+
+    <div class="anim-dock">
+      <button id="btn-play-pause" class="btn btn-accent" type="button" aria-pressed="true">
+        <svg id="icon-pause" class="svg-icon" viewBox="0 0 24 24">
+          <rect x="6" y="4" width="4" height="16" fill="currentColor" stroke="none"/>
+          <rect x="14" y="4" width="4" height="16" fill="currentColor" stroke="none"/>
+        </svg>
+        <svg id="icon-play" class="svg-icon" viewBox="0 0 24 24" style="display:none;">
+          <polygon points="6,4 20,12 6,20" fill="currentColor" stroke="none"/>
+        </svg>
+        <span id="play-pause-label">暫停動畫</span>
+      </button>
+
+      <div class="timeline-box">
+        <div class="phase-text">
+          <span id="phase-title">階段 1｜梅岡通學與操場脈動</span>
+          <span id="phase-sub" class="phase-sub">公車通學・跑道運動・白鷺飛翔</span>
+        </div>
+        <input id="anim-scrubber" class="scrubber" type="range" min="0" max="1000" value="0" aria-label="3D 動畫時間軸" />
+      </div>
+
+      <button id="btn-explode" class="btn btn-toggle" type="button" title="常駐切換悅知樓與活動中心立體結構拆解">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 12 12 17 22 12"/>
+          <polyline points="2 17 12 22 22 17"/>
+        </svg>
+        <span>結構拆解</span>
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    // ------------------------------------------------------------
+    // 1. Scene, PBR Environment, Post-Processing & Camera Controls
+    // ------------------------------------------------------------
+    const container = document.getElementById('canvas-container');
+    const labelLayer = document.getElementById('label-layer');
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0xe1ddd4, 0.0016);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.8, 1000);
+    const INITIAL_CAM_POS = new THREE.Vector3(20, 126, 178);
+    const INITIAL_TARGET = new THREE.Vector3(2, 4, 2);
+    camera.position.copy(INITIAL_CAM_POS);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.04;
+    container.appendChild(renderer.domElement);
+
+    // Real-time PBR Environment Reflections (for glass, solar panels, metal roofs & pond water!)
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const envTex = pmremGenerator.fromScene(new RoomEnvironment(), 0.045).texture;
+    scene.environment = envTex;
+    scene.environmentIntensity = 0.42;
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.22,
+      0.52,
+      0.86
+    );
+    composer.addPass(bloomPass);
+    composer.addPass(new OutputPass());
+
+    const labelRenderer = new CSS2DRenderer({ element: labelLayer });
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.copy(INITIAL_TARGET);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.065;
+    controls.maxPolarAngle = Math.PI * 0.485;
+    controls.minPolarAngle = 0.12;
+    controls.minDistance = 8;
+    controls.maxDistance = 330;
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_PAN
+    };
+
+    const camAnim = {
+      active: false,
+      fromPos: new THREE.Vector3(),
+      toPos: new THREE.Vector3(),
+      fromTarget: new THREE.Vector3(),
+      toTarget: new THREE.Vector3(),
+      progress: 0,
+      duration: 0.95
+    };
+
+    function flyTo(targetPos, camPos, duration = 0.95) {
+      camAnim.fromPos.copy(camera.position);
+      camAnim.toPos.copy(camPos);
+      camAnim.fromTarget.copy(controls.target);
+      camAnim.toTarget.copy(targetPos);
+      camAnim.progress = 0;
+      camAnim.duration = duration;
+      camAnim.active = true;
+    }
+
+    let activeTourTimer = null;
+    let isStreetView = false;
+    const btnStreetView = document.getElementById('btn-street-view');
+
+    function stopGuidedTour() {
+      if (activeTourTimer) {
+        clearInterval(activeTourTimer);
+        activeTourTimer = null;
+      }
+      document.querySelectorAll('.tour-card').forEach((c) => c.classList.remove('is-running'));
+    }
+
+    controls.addEventListener('start', () => {
+      camAnim.active = false;
+      stopGuidedTour();
+    });
+
+    // ------------------------------------------------------------
+    // 2. Procedural High-DPI Canvas Textures
+    // ------------------------------------------------------------
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+    function makeSolarTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#133458';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.strokeStyle = '#2c649c';
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= 256; i += 32) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(215, 232, 250, 0.5)';
+      ctx.lineWidth = 3;
+      for (let i = 64; i < 256; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.anisotropy = maxAniso;
+      return tex;
+    }
+
+    function makeWindowTextures() {
+      const diffC = document.createElement('canvas');
+      const emisC = document.createElement('canvas');
+      diffC.width = emisC.width = 256;
+      diffC.height = emisC.height = 128;
+      const dCtx = diffC.getContext('2d');
+      const eCtx = emisC.getContext('2d');
+
+      dCtx.fillStyle = '#294257';
+      dCtx.fillRect(0, 0, 256, 128);
+      eCtx.fillStyle = '#000000';
+      eCtx.fillRect(0, 0, 256, 128);
+
+      const cols = 8;
+      const padW = 256 / cols;
+      for (let i = 0; i < cols; i++) {
+        const warmLit = (i * 7 + 3) % 5 !== 0;
+        dCtx.fillStyle = warmLit ? '#395b75' : '#23394b';
+        dCtx.fillRect(i * padW + 3, 10, padW - 6, 108);
+
+        dCtx.strokeStyle = '#d2d7dc';
+        dCtx.lineWidth = 3;
+        dCtx.strokeRect(i * padW + 2, 8, padW - 4, 112);
+
+        if (warmLit) {
+          eCtx.fillStyle = i % 2 === 0 ? '#ffd08a' : '#ffe6ba';
+          eCtx.fillRect(i * padW + 5, 14, padW - 10, 100);
+        }
+      }
+
+      const map = new THREE.CanvasTexture(diffC);
+      const emissiveMap = new THREE.CanvasTexture(emisC);
+      map.wrapS = map.wrapT = emissiveMap.wrapS = emissiveMap.wrapT = THREE.RepeatWrapping;
+      map.repeat.set(4, 1);
+      emissiveMap.repeat.set(4, 1);
+      map.anisotropy = maxAniso;
+      return { map, emissiveMap };
+    }
+
+    function makeBasketballCourtTexture(bgHex, keyHex) {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 360;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bgHex;
+      ctx.fillRect(0, 0, 512, 360);
+
+      ctx.fillStyle = keyHex;
+      ctx.fillRect(28, 126, 92, 108);
+      ctx.fillRect(392, 126, 92, 108);
+
+      ctx.strokeStyle = '#f5f2eb';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(28, 24, 456, 312);
+
+      ctx.beginPath(); ctx.moveTo(256, 24); ctx.lineTo(256, 336); ctx.stroke();
+      ctx.beginPath(); ctx.arc(256, 180, 42, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeRect(28, 126, 92, 108);
+      ctx.strokeRect(392, 126, 92, 108);
+      ctx.beginPath(); ctx.arc(58, 180, 114, -Math.PI * 0.42, Math.PI * 0.42); ctx.stroke();
+      ctx.beginPath(); ctx.arc(454, 180, 114, Math.PI * 0.58, Math.PI * 1.42); ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = maxAniso;
+      return tex;
+    }
+
+    function makeTennisCourtTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#477a5c';
+      ctx.fillRect(0, 0, 256, 512);
+
+      ctx.strokeStyle = '#f5f2eb';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(28, 28, 200, 456);
+      ctx.strokeRect(52, 28, 152, 456);
+      ctx.beginPath(); ctx.moveTo(52, 146); ctx.lineTo(204, 146); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(52, 366); ctx.lineTo(204, 366); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(128, 146); ctx.lineTo(128, 366); ctx.stroke();
+      ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.moveTo(20, 256); ctx.lineTo(236, 256); ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = maxAniso;
+      return tex;
+    }
+
+    const solarTex = makeSolarTexture();
+    const winTex = makeWindowTextures();
+    const bballTexBlue = makeBasketballCourtTexture('#447294', '#b8523b');
+    const bballTexGreen = makeBasketballCourtTexture('#4a7d60', '#447294');
+    const tennisTex = makeTennisCourtTexture();
+
+    // ------------------------------------------------------------
+    // 3. Multi-Mode Lighting, Starfield Dome & Atmospheric Particles
+    // ------------------------------------------------------------
+    const hemiLight = new THREE.HemisphereLight(0xdceeff, 0xa86c53, 0.78);
+    hemiLight.position.set(0, 125, 0);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfff4e0, 1.95);
+    sunLight.position.set(95, 118, 68);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 20;
+    sunLight.shadow.camera.far = 370;
+    const shadowExtent = 150;
+    sunLight.shadow.camera.left = -shadowExtent;
+    sunLight.shadow.camera.right = shadowExtent;
+    sunLight.shadow.camera.top = shadowExtent;
+    sunLight.shadow.camera.bottom = -shadowExtent;
+    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.normalBias = 0.024;
+    scene.add(sunLight);
+
+    const fillLight = new THREE.DirectionalLight(0xc9dff2, 0.42);
+    fillLight.position.set(-92, 68, -78);
+    scene.add(fillLight);
+
+    const sunOrb = new THREE.Mesh(
+      new THREE.SphereGeometry(4.5, 24, 24),
+      new THREE.MeshBasicMaterial({ color: 0xfff4d2 })
+    );
+    scene.add(sunOrb);
+
+    // Night Starfield Dome
+    let starPoints = null;
+    {
+      const starCount = 420;
+      const sPos = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI * 0.44;
+        const r = 420 + Math.random() * 60;
+        sPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        sPos[i * 3 + 1] = r * Math.cos(phi) + 20;
+        sPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      }
+      const sGeo = new THREE.BufferGeometry();
+      sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+      const sMat = new THREE.PointsMaterial({
+        color: 0xf4f8ff, size: 2.1, sizeAttenuation: true, transparent: true, opacity: 0.0, fog: false
+      });
+      starPoints = new THREE.Points(sGeo, sMat);
+      scene.add(starPoints);
+    }
+
+    // Floating Atmospheric Pollen / Firefly Motes over Woods & Campus
+    let motePoints = null;
+    const moteCount = 110;
+    const moteBaseY = new Float32Array(moteCount);
+    {
+      const mPos = new Float32Array(moteCount * 3);
+      for (let i = 0; i < moteCount; i++) {
+        mPos[i * 3] = (Math.random() - 0.5) * 190;
+        moteBaseY[i] = 6 + Math.random() * 14;
+        mPos[i * 3 + 1] = moteBaseY[i];
+        mPos[i * 3 + 2] = (Math.random() - 0.5) * 190;
+      }
+      const mGeo = new THREE.BufferGeometry();
+      mGeo.setAttribute('position', new THREE.BufferAttribute(mPos, 3));
+      const mMat = new THREE.PointsMaterial({
+        color: 0xfff2b2, size: 0.85, transparent: true, opacity: 0.55
+      });
+      motePoints = new THREE.Points(mGeo, mMat);
+      scene.add(motePoints);
+    }
+
+    const nightLampBulbs = [];
+    const nightSpotLights = [];
+
+    const TIME_PRESETS = {
+      morning: {
+        fogColor: 0xdbe4ec, fogDensity: 0.00175,
+        hemiSky: 0xd4e8ff, hemiGround: 0x9c6e58, hemiInt: 0.76,
+        sunColor: 0xffe8c8, sunInt: 1.75, sunBase: [115, 76, 22],
+        fillColor: 0xc2dcf5, fillInt: 0.45, envInt: 0.4,
+        winEmissive: 0.05, lampEmissive: 0.0, starOpacity: 0.0, moteColor: 0xfff7d6,
+        bloom: 0.2, exposure: 1.03
+      },
+      day: {
+        fogColor: 0xe1ddd4, fogDensity: 0.00155,
+        hemiSky: 0xdceeff, hemiGround: 0xa86c53, hemiInt: 0.82,
+        sunColor: 0xfff5e4, sunInt: 2.0, sunBase: [85, 118, 68],
+        fillColor: 0xc9dff2, fillInt: 0.44, envInt: 0.46,
+        winEmissive: 0.0, lampEmissive: 0.0, starOpacity: 0.0, moteColor: 0xfff4c2,
+        bloom: 0.21, exposure: 1.04
+      },
+      dusk: {
+        fogColor: 0xc99c82, fogDensity: 0.002,
+        hemiSky: 0x7b8eb8, hemiGround: 0x8c4a36, hemiInt: 0.62,
+        sunColor: 0xff8c4a, sunInt: 1.85, sunBase: [-118, 42, 62],
+        fillColor: 0x6f82ad, fillInt: 0.36, envInt: 0.32,
+        winEmissive: 0.55, lampEmissive: 1.25, starOpacity: 0.35, moteColor: 0xffcc7a,
+        bloom: 0.36, exposure: 1.0
+      },
+      night: {
+        fogColor: 0x111d30, fogDensity: 0.0021,
+        hemiSky: 0x2b446e, hemiGround: 0x151d28, hemiInt: 0.46,
+        sunColor: 0x7aa4d9, sunInt: 0.52, sunBase: [-75, 95, -65],
+        fillColor: 0x2a4568, fillInt: 0.28, envInt: 0.16,
+        winEmissive: 1.18, lampEmissive: 2.25, starOpacity: 0.92, moteColor: 0xc8ff8a,
+        bloom: 0.5, exposure: 0.96
+      }
+    };
+
+    let currentTimeMode = 'day';
+    const windowMaterials = [];
+
+    // ------------------------------------------------------------
+    // 4. Gaoshanding Laterite Plateau Terrain Function
+    // ------------------------------------------------------------
+    function smoothstep(edge0, edge1, x) {
+      const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+      return t * t * (3 - 2 * t);
+    }
+
+    function getTerrainHeight(x, z) {
+      const southSlope = 1.0 - smoothstep(32, 118, z);
+      const westSlope = 1.0 - 0.36 * smoothstep(-48, -118, x);
+      const eastRidge = 1.0 - 0.18 * smoothstep(68, 125, x);
+
+      let h = 0.6 + 4.4 * southSlope * westSlope * eastRidge;
+
+      const inTrack = (1 - smoothstep(46, 68, Math.abs(x - 10))) * (1 - smoothstep(34, 52, Math.abs(z + 45)));
+      const inQuad = (1 - smoothstep(42, 58, Math.abs(x))) * (1 - smoothstep(26, 40, Math.abs(z - 22)));
+      const flatCampusWeight = Math.max(inTrack, inQuad);
+      h = THREE.MathUtils.lerp(h, 5.0, flatCampusWeight * 0.92);
+
+      const dRixin = Math.hypot((x + 68) * 0.8, (z + 32));
+      h = THREE.MathUtils.lerp(h, 4.15, (1 - smoothstep(16, 30, dRixin)) * 0.8);
+
+      const dAct = Math.hypot((x - 12), (z - 78) * 0.85);
+      h = THREE.MathUtils.lerp(h, 2.75, (1 - smoothstep(16, 28, dAct)) * 0.85);
+
+      const dPond = Math.hypot((x - 86) * 0.82, (z + 102));
+      h -= (1 - smoothstep(16, 28, dPond)) * 2.2;
+
+      const undulation = Math.sin(x * 0.045) * Math.cos(z * 0.045) * 0.22 * (1 - flatCampusWeight);
+      return h + undulation;
+    }
+
+    const TERRAIN_SIZE = 256;
+    const TERRAIN_SEGS = 148;
+    const halfT = TERRAIN_SIZE / 2;
+    let pondWaterMesh = null;
+
+    function buildPlateauMaquette() {
+      const group = new THREE.Group();
+
+      const topGeo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SEGS, TERRAIN_SEGS);
+      topGeo.rotateX(-Math.PI / 2);
+
+      const pos = topGeo.attributes.position;
+      const colors = new Float32Array(pos.count * 3);
+
+      const cCampus = new THREE.Color(0xd2ccbf);
+      const cLawn = new THREE.Color(0x7c9d68);
+      const cForest = new THREE.Color(0x4f7248);
+      const cUrban = new THREE.Color(0xc4c0b8);
+      const cPondBed = new THREE.Color(0x365b59);
+      const cLaterite = new THREE.Color(0xa8553d);
+      const cContour = new THREE.Color(0x637956);
+      const tmp = new THREE.Color();
+
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vz = pos.getZ(i);
+        const vy = getTerrainHeight(vx, vz);
+        pos.setY(i, vy);
+
+        tmp.copy(cLawn);
+
+        const inQuadApron = (1 - smoothstep(42, 50, Math.abs(vx))) * (1 - smoothstep(25, 32, Math.abs(vz - 21)));
+        tmp.lerp(cCampus, inQuadApron * 0.85);
+
+        if (vx + vz * 0.92 < -92) {
+          tmp.lerp(cUrban, smoothstep(-92, -112, vx + vz * 0.92) * 0.85);
+        }
+
+        const slopeWood = Math.max(
+          smoothstep(54, 72, vx) * (1 - smoothstep(-32, -52, vz)),
+          smoothstep(48, 72, vz) * (1 - smoothstep(0, 22, Math.abs(vx - 12)))
+        );
+        tmp.lerp(cForest, Math.min(1, slopeWood * 0.85));
+
+        const slopeBand = (1 - smoothstep(0.6, 2.2, Math.abs(vy - 3.0))) * smoothstep(38, 65, vz);
+        tmp.lerp(cLaterite, slopeBand * 0.3);
+
+        const contourFrac = Math.abs(((vy * 1.4) % 1) - 0.5);
+        if (contourFrac < 0.045 && vy < 4.75 && vy > 0.7) {
+          tmp.lerp(cContour, 0.35);
+        }
+
+        const dPond = Math.hypot((vx - 86) * 0.82, (vz + 102));
+        if (dPond < 27) {
+          tmp.lerp(cPondBed, 1 - smoothstep(16, 27, dPond));
+        }
+
+        colors[i * 3] = tmp.r;
+        colors[i * 3 + 1] = tmp.g;
+        colors[i * 3 + 2] = tmp.b;
+      }
+
+      topGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      topGeo.computeVertexNormals();
+
+      const topMesh = new THREE.Mesh(
+        topGeo,
+        new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0.02 })
+      );
+      topMesh.receiveShadow = true;
+      group.add(topMesh);
+
+      const baseBottomY = -6.8;
+      const strataMidY = -2.3;
+
+      function createSkirtSide(isXFixed, fixedVal, flipNormal) {
+        const segs = TERRAIN_SEGS;
+        const upperPositions = [];
+        const lowerPositions = [];
+
+        for (let i = 0; i < segs; i++) {
+          const t0 = -halfT + (i / segs) * TERRAIN_SIZE;
+          const t1 = -halfT + ((i + 1) / segs) * TERRAIN_SIZE;
+
+          const x0 = isXFixed ? fixedVal : t0;
+          const z0 = isXFixed ? t0 : fixedVal;
+          const x1 = isXFixed ? fixedVal : t1;
+          const z1 = isXFixed ? t1 : fixedVal;
+
+          const y0 = getTerrainHeight(x0, z0);
+          const y1 = getTerrainHeight(x1, z1);
+          const m0 = strataMidY + Math.sin(t0 * 0.06) * 0.35;
+          const m1 = strataMidY + Math.sin(t1 * 0.06) * 0.35;
+
+          if (!flipNormal) {
+            upperPositions.push(x0, y0, z0, x0, m0, z0, x1, y1, z1, x1, y1, z1, x0, m0, z0, x1, m1, z1);
+            lowerPositions.push(x0, m0, z0, x0, baseBottomY, z0, x1, m1, z1, x1, m1, z1, x0, baseBottomY, z0, x1, baseBottomY, z1);
+          } else {
+            upperPositions.push(x0, y0, z0, x1, y1, z1, x0, m0, z0, x1, y1, z1, x1, m1, z1, x0, m0, z0);
+            lowerPositions.push(x0, m0, z0, x1, m1, z1, x0, baseBottomY, z0, x1, m1, z1, x1, baseBottomY, z1, x0, baseBottomY, z0);
+          }
+        }
+
+        const uGeo = new THREE.BufferGeometry();
+        uGeo.setAttribute('position', new THREE.Float32BufferAttribute(upperPositions, 3));
+        uGeo.computeVertexNormals();
+
+        const lGeo = new THREE.BufferGeometry();
+        lGeo.setAttribute('position', new THREE.Float32BufferAttribute(lowerPositions, 3));
+        lGeo.computeVertexNormals();
+
+        group.add(new THREE.Mesh(uGeo, new THREE.MeshStandardMaterial({ color: 0xa14b34, roughness: 0.88 })));
+        group.add(new THREE.Mesh(lGeo, new THREE.MeshStandardMaterial({ color: 0x5c534b, roughness: 0.95 })));
+      }
+
+      createSkirtSide(false, halfT, false);
+      createSkirtSide(false, -halfT, true);
+      createSkirtSide(true, halfT, true);
+      createSkirtSide(true, -halfT, false);
+
+      const plinth = new THREE.Mesh(
+        new THREE.BoxGeometry(TERRAIN_SIZE + 5.6, 3.0, TERRAIN_SIZE + 5.6),
+        new THREE.MeshStandardMaterial({ color: 0x23282e, roughness: 0.62, metalness: 0.22 })
+      );
+      plinth.position.y = baseBottomY - 1.5;
+      plinth.receiveShadow = true;
+      group.add(plinth);
+
+      const brassTrim = new THREE.Mesh(
+        new THREE.BoxGeometry(TERRAIN_SIZE + 6.0, 0.28, TERRAIN_SIZE + 6.0),
+        new THREE.MeshStandardMaterial({ color: 0xc29354, roughness: 0.3, metalness: 0.8 })
+      );
+      brassTrim.position.y = baseBottomY - 0.08;
+      group.add(brassTrim);
+
+      const northArrow = new THREE.Mesh(
+        new THREE.ConeGeometry(2.8, 7.0, 4),
+        new THREE.MeshStandardMaterial({ color: 0xb54830, roughness: 0.45 })
+      );
+      northArrow.rotation.x = -Math.PI / 2;
+      northArrow.rotation.z = Math.PI / 4;
+      northArrow.position.set(0, baseBottomY - 0.1, -halfT - 5.2);
+      group.add(northArrow);
+
+      return group;
+    }
+
+    scene.add(buildPlateauMaquette());
+
+    // ------------------------------------------------------------
+    // 5. Shared Materials & Architectural Component Builders
+    // ------------------------------------------------------------
+    const baseWindowMat = new THREE.MeshStandardMaterial({
+      map: winTex.map,
+      emissiveMap: winTex.emissiveMap,
+      emissive: new THREE.Color(0xffbd6b),
+      emissiveIntensity: 0.0,
+      roughness: 0.18,
+      metalness: 0.55
+    });
+
+    const MATS = {
+      roadMain: new THREE.MeshStandardMaterial({
+        color: 0x4f555d, roughness: 0.88,
+        polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2
+      }),
+      roadCampus: new THREE.MeshStandardMaterial({
+        color: 0x74797f, roughness: 0.85,
+        polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3
+      }),
+      roadLine: new THREE.MeshBasicMaterial({
+        color: 0xf4efe4,
+        polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4
+      }),
+      wallModern: new THREE.MeshStandardMaterial({ color: 0xf3efe7, roughness: 0.6 }),
+      wallWarm: new THREE.MeshStandardMaterial({ color: 0xe6dfd3, roughness: 0.68 }),
+      wallConcrete: new THREE.MeshStandardMaterial({ color: 0xcecac1, roughness: 0.76 }),
+      wallLaterite: new THREE.MeshStandardMaterial({ color: 0xb24a33, roughness: 0.64 }),
+      louverWood: new THREE.MeshStandardMaterial({ color: 0xba754d, roughness: 0.54 }),
+      glassGallery: new THREE.MeshStandardMaterial({
+        color: 0x8ec2d6, emissive: 0xffb86c, emissiveIntensity: 0.35,
+        roughness: 0.12, metalness: 0.35, transparent: true, opacity: 0.84
+      }),
+      solarPanel: new THREE.MeshPhysicalMaterial({
+        map: solarTex,
+        color: 0xffffff,
+        emissive: 0x0b2542,
+        emissiveIntensity: 0.16,
+        roughness: 0.15,
+        metalness: 0.62,
+        clearcoat: 0.9,
+        clearcoatRoughness: 0.12
+      }),
+      solarFrame: new THREE.MeshStandardMaterial({ color: 0x9aa3ab, roughness: 0.38, metalness: 0.7 }),
+      roofMetal: new THREE.MeshStandardMaterial({ color: 0xcfd6dc, roughness: 0.32, metalness: 0.6 }),
+      trackRed: new THREE.MeshStandardMaterial({
+        color: 0xc2543d, roughness: 0.8,
+        polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2
+      }),
+      infieldGrass: new THREE.MeshStandardMaterial({
+        color: 0x628f54, roughness: 0.9,
+        polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3
+      }),
+      courtBlue: new THREE.MeshStandardMaterial({
+        map: bballTexBlue, roughness: 0.75,
+        polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4
+      }),
+      courtGreen: new THREE.MeshStandardMaterial({
+        map: bballTexGreen, roughness: 0.75,
+        polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4
+      }),
+      tennisMat: new THREE.MeshStandardMaterial({
+        map: tennisTex, roughness: 0.75,
+        polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4
+      }),
+      shellWhite: new THREE.MeshStandardMaterial({
+        color: 0xfbfaf6, roughness: 0.34, side: THREE.DoubleSide
+      }),
+      urbanBuilding: new THREE.MeshStandardMaterial({ color: 0xd9d4cb, roughness: 0.82 }),
+      poolWater: new THREE.MeshStandardMaterial({
+        color: 0x2ca8c6, emissive: 0x147087, emissiveIntensity: 0.45, roughness: 0.12
+      }),
+      woodFloor: new THREE.MeshStandardMaterial({ color: 0xc89662, roughness: 0.5 }),
+      mesonaPurple: new THREE.MeshStandardMaterial({ color: 0x844c96, roughness: 0.78 }),
+      mesonaLeaf: new THREE.MeshStandardMaterial({ color: 0x456e3e, roughness: 0.85 })
+    };
+
+    function createWindowMaterialClone() {
+      const m = baseWindowMat.clone();
+      windowMaterials.push(m);
+      return m;
+    }
+
+    function createTerrainRoad(points2D, width, material, yLift = 0.08, addCenterLine = false) {
+      const group = new THREE.Group();
+      const pts3 = points2D.map(([x, z]) => new THREE.Vector3(x, getTerrainHeight(x, z) + yLift, z));
+      const curve = new THREE.CatmullRomCurve3(pts3, false, 'centripetal', 0.35);
+      const samples = Math.max(40, Math.floor(curve.getLength() * 1.4));
+      const spaced = curve.getSpacedPoints(samples);
+
+      const positions = [];
+      const uvs = [];
+      const indices = [];
+
+      for (let i = 0; i < spaced.length; i++) {
+        const p = spaced[i];
+        const prev = spaced[Math.max(0, i - 1)];
+        const next = spaced[Math.min(spaced.length - 1, i + 1)];
+        const dir = new THREE.Vector2(next.x - prev.x, next.z - prev.z).normalize();
+        const perp = new THREE.Vector2(-dir.y, dir.x);
+
+        const lx = p.x + perp.x * (width * 0.5);
+        const lz = p.z + perp.y * (width * 0.5);
+        const rx = p.x - perp.x * (width * 0.5);
+        const rz = p.z - perp.y * (width * 0.5);
+
+        positions.push(lx, getTerrainHeight(lx, lz) + yLift, lz, rx, getTerrainHeight(rx, rz) + yLift, rz);
+        const v = i / (spaced.length - 1);
+        uvs.push(0, v, 1, v);
+
+        if (i < spaced.length - 1) {
+          const base = i * 2;
+          indices.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
+        }
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+
+      const roadMesh = new THREE.Mesh(geo, material);
+      roadMesh.receiveShadow = true;
+      group.add(roadMesh);
+
+      if (addCenterLine) {
+        for (let i = 2; i < spaced.length - 2; i += 4) {
+          const p0 = spaced[i];
+          const p1 = spaced[Math.min(spaced.length - 1, i + 1)];
+          const dash = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.28, p0.distanceTo(p1) * 0.9),
+            MATS.roadLine
+          );
+          dash.rotation.x = -Math.PI / 2;
+          const midX = (p0.x + p1.x) * 0.5;
+          const midZ = (p0.z + p1.z) * 0.5;
+          dash.position.set(midX, getTerrainHeight(midX, midZ) + yLift + 0.03, midZ);
+          dash.rotation.z = -Math.atan2(p1.x - p0.x, p1.z - p0.z);
+          group.add(dash);
+        }
+      }
+
+      return { group, curve };
+    }
+
+    function addRoadSign(text, x, z, isDirection = false) {
+      const el = document.createElement('div');
+      el.className = isDirection ? 'road-sign is-dir' : 'road-sign';
+      el.textContent = text;
+      const obj = new CSS2DObject(el);
+      obj.position.set(x, getTerrainHeight(x, z) + 0.8, z);
+      scene.add(obj);
+    }
+
+    function createCrosswalk(x, z, rotY, width = 5.4) {
+      const g = new THREE.Group();
+      g.position.set(x, getTerrainHeight(x, z) + 0.14, z);
+      g.rotation.y = rotY;
+      for (let i = -3; i <= 3; i++) {
+        const stripe = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 2.4), MATS.roadLine);
+        stripe.rotation.x = -Math.PI / 2;
+        stripe.position.x = i * (width / 7.5);
+        g.add(stripe);
+      }
+      return g;
+    }
+
+    function createStreetLamp(x, z) {
+      const g = new THREE.Group();
+      g.position.set(x, getTerrainHeight(x, z), z);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 4.6, 6), MATS.solarFrame);
+      pole.position.y = 2.3;
+      pole.castShadow = true;
+      g.add(pole);
+
+      const bulbMat = new THREE.MeshStandardMaterial({
+        color: 0xfff0cc, emissive: 0xffb347, emissiveIntensity: 0.0, roughness: 0.2
+      });
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 10), bulbMat);
+      bulb.position.set(0, 4.7, 0);
+      g.add(bulb);
+      nightLampBulbs.push(bulbMat);
+      return g;
+    }
+
+    function createSolarRoofArray(w, d, rows = 2, cols = 5) {
+      const g = new THREE.Group();
+      const padX = (w - 1.2) / cols;
+      const padZ = (d - 1.2) / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const panel = new THREE.Mesh(
+            new THREE.BoxGeometry(padX * 0.85, 0.16, padZ * 0.78),
+            MATS.solarPanel
+          );
+          panel.position.set(-w * 0.5 + 0.6 + (c + 0.5) * padX, 0.45, -d * 0.5 + 0.6 + (r + 0.5) * padZ);
+          panel.rotation.x = 0.22;
+          panel.castShadow = true;
+          g.add(panel);
+        }
+      }
+      return g;
+    }
+
+    function createDetailedBlock({ w, h, d, floors = 4, wallMat = MATS.wallWarm, addLouvers = false, addSolar = false }) {
+      const g = new THREE.Group();
+      const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.35, 3.4, d + 0.35), MATS.wallConcrete);
+      plinth.position.y = -1.7;
+      plinth.receiveShadow = true;
+      g.add(plinth);
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+      body.position.y = h * 0.5;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      g.add(body);
+
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.45, 0.48, d + 0.45), MATS.wallConcrete);
+      roof.position.y = h + 0.24;
+      roof.castShadow = true;
+      g.add(roof);
+
+      const winMat = createWindowMaterialClone();
+      const floorH = h / floors;
+      for (let f = 0; f < floors; f++) {
+        const winBand = new THREE.Mesh(
+          new THREE.BoxGeometry(w * 0.93, floorH * 0.48, d + 0.16),
+          winMat
+        );
+        winBand.position.y = (f + 0.56) * floorH;
+        g.add(winBand);
+
+        const ledge = new THREE.Mesh(new THREE.BoxGeometry(w + 0.28, 0.22, d + 0.28), MATS.wallModern);
+        ledge.position.y = (f + 1) * floorH;
+        g.add(ledge);
+      }
+
+      if (addLouvers) {
+        const finCount = Math.max(4, Math.floor(w / 2.2));
+        for (let i = 0; i <= finCount; i++) {
+          const fx = -w * 0.46 + (i / finCount) * (w * 0.92);
+          const fin = new THREE.Mesh(new THREE.BoxGeometry(0.18, h * 0.88, d + 0.52), MATS.louverWood);
+          fin.position.set(fx, h * 0.52, 0);
+          g.add(fin);
+        }
+      }
+
+      if (addSolar) {
+        const solar = createSolarRoofArray(w, d, Math.max(1, Math.floor(d / 4)), Math.max(2, Math.floor(w / 4.5)));
+        solar.position.y = h + 0.48;
+        g.add(solar);
+      }
+
+      return g;
+    }
+
+    // ------------------------------------------------------------
+    // 6. Landmark Registry (16 Interactive Campus & Local Landmarks)
+    // ------------------------------------------------------------
+    const landmarks = [];
+    const pickableMeshes = [];
+
+    function registerLandmark({
+      id, name, shortName, category, categoryLabel, metrics,
+      summary, specs, focusPoint, camOffset, group, pinOffset = new THREE.Vector3(0, 8, 0)
+    }) {
+      const meshes = [];
+      group.traverse((child) => {
+        if (child.isMesh) {
+          const isTrackedWin = windowMaterials.includes(child.material);
+          child.material = child.material.clone();
+          if (isTrackedWin) windowMaterials.push(child.material);
+
+          child.userData.landmarkId = id;
+          child.userData.isWindow = isTrackedWin;
+          child.userData.origEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0x000000);
+          child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
+          meshes.push(child);
+          pickableMeshes.push(child);
+        }
+      });
+
+      const pinEl = document.createElement('button');
+      pinEl.type = 'button';
+      pinEl.className = `pin-label cat-${category}`;
+      pinEl.innerHTML = `<span class="pin-dot"></span><span>${shortName || name}</span>`;
+      pinEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stopGuidedTour();
+        exitStreetViewFlag();
+        selectLandmark(id);
+      });
+
+      const pinObj = new CSS2DObject(pinEl);
+      pinObj.position.copy(focusPoint).add(pinOffset);
+      scene.add(pinObj);
+
+      const entry = {
+        id, name, shortName: shortName || name, category, categoryLabel,
+        metrics, summary, specs, focusPoint, camOffset, group, meshes, pinEl, pinObj
+      };
+      landmarks.push(entry);
+      return entry;
+    }
+
+    // ------------------------------------------------------------
+    // 7. Build Roads, 3D Street Nameplates, Crosswalks & Streetlamps
+    // ------------------------------------------------------------
+    const gaoshiMain = createTerrainRoad(
+      [[86, -68], [76, -34], [65, -4], [55, 24], [45, 55], [35, 86], [25, 118]],
+      6.8, MATS.roadMain, 0.1, true
+    );
+    scene.add(gaoshiMain.group);
+
+    const gaoshiNE = createTerrainRoad([[75, -32], [96, -26], [122, -18]], 5.6, MATS.roadMain, 0.1, true);
+    scene.add(gaoshiNE.group);
+
+    const gaoshiSW = createTerrainRoad([[22, 118], [2, 96], [-26, 72], [-64, 46], [-114, 18]], 5.8, MATS.roadMain, 0.1, true);
+    scene.add(gaoshiSW.group);
+
+    scene.add(createTerrainRoad([[-84, 36], [-80, 68], [-64, 114]], 3.6, MATS.roadCampus, 0.09).group);
+
+    const meigangLn = createTerrainRoad(
+      [[-2, -118], [-22, -92], [-50, -68], [-78, -46], [-94, -26], [-88, -4], [-70, 22], [-50, 52], [-26, 62], [-4, 62]],
+      4.8, MATS.roadMain, 0.1, true
+    );
+    scene.add(meigangLn.group);
+
+    scene.add(createTerrainRoad([[-50, -68], [-86, -98], [-116, -118]], 3.6, MATS.roadCampus, 0.09).group);
+    scene.add(createTerrainRoad([[-82, -52], [-116, -82]], 3.6, MATS.roadCampus, 0.09).group);
+    scene.add(createTerrainRoad([[-114, -52], [-68, -114]], 3.6, MATS.roadCampus, 0.09).group);
+
+    const campusGateDrive = createTerrainRoad([[45, 54], [22, 56], [-4, 60], [-4, 96], [-2, 112]], 4.2, MATS.roadCampus, 0.12);
+    scene.add(campusGateDrive.group);
+
+    const campusNorthDrive = createTerrainRoad([[64, -3], [32, -2], [-4, -1], [-46, -1], [-58, -14], [-86, -14]], 3.8, MATS.roadCampus, 0.12);
+    scene.add(campusNorthDrive.group);
+
+    // 3D Street & Highway Direction Signs matching Google Maps!
+    addRoadSign('高獅路', 58, 18);
+    addRoadSign('高獅路', -32, 76);
+    addRoadSign('高獅路 10 巷', -78, 72);
+    addRoadSign('梅岡巷', -36, -80);
+    addRoadSign('梅岡巷', -78, 8);
+    addRoadSign('梅岡巷 14 弄', -74, -88);
+    addRoadSign('↗ 往國道 1 號幼獅交流道', 108, -22, true);
+    addRoadSign('↙ 往楊梅市區・台鐵楊梅站', 26, 116, true);
+
+    scene.add(createCrosswalk(44, 51, -0.32, 5.8));
+    scene.add(createCrosswalk(-48, -66, 0.62, 4.4));
+
+    [
+      [74, -26], [62, 6], [52, 36], [42, 66], [32, 96],
+      [-28, -84], [-58, -60], [-88, -34], [-82, 4], [-58, 42],
+      [18, 54], [-10, 56], [-8, 82]
+    ].forEach(([lx, lz]) => scene.add(createStreetLamp(lx, lz)));
+
+    const nightFlood = new THREE.SpotLight(0xffe7ba, 0, 185, Math.PI * 0.42, 0.55, 1.2);
+    nightFlood.position.set(10, 46, -20);
+    nightFlood.target.position.set(6, 4, 5);
+    scene.add(nightFlood);
+    scene.add(nightFlood.target);
+    nightSpotLights.push(nightFlood);
+
+    // ------------------------------------------------------------
+    // 8. Build All 16 Landmarks
+    // ------------------------------------------------------------
+    const explodeParts = [];
+    const wavingFlags = [];
+
+    // [1] 悅知樓 (5F New Comprehensive Teaching Building)
+    {
+      const yuezhiGroup = new THREE.Group();
+      const baseY = getTerrainHeight(2, 7);
+      yuezhiGroup.position.set(2, baseY, 7);
+      scene.add(yuezhiGroup);
+
+      const floorNames = [
+        '1F 迎賓穿堂・行政辦公室・保健室',
+        '2F 圖書館挑空核心・連通蘊慧樓景觀中廊',
+        '3F 普通科教室・雙語實驗課程討論區',
+        '4F 普通科教室・多元選修專科空間',
+        '5F 高年級教室・智慧數位教學層'
+      ];
+
+      const w = 64, d = 11.5, floorH = 2.45;
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(w + 2, 2.4, d + 2), MATS.wallConcrete);
+      pad.position.y = -1.2;
+      pad.receiveShadow = true;
+      yuezhiGroup.add(pad);
+
+      const yzWinMat = createWindowMaterialClone();
+
+      for (let f = 0; f < 5; f++) {
+        const fGroup = new THREE.Group();
+        const restY = f * floorH;
+        fGroup.position.y = restY;
+
+        const slab = new THREE.Mesh(new THREE.BoxGeometry(w, 0.36, d), MATS.wallModern);
+        slab.position.y = 0.18;
+        slab.castShadow = true;
+        slab.receiveShadow = true;
+        fGroup.add(slab);
+
+        const libCore = new THREE.Mesh(new THREE.BoxGeometry(14, floorH * 0.72, d * 0.7), MATS.louverWood);
+        libCore.position.set(-4, floorH * 0.45, 0);
+        fGroup.add(libCore);
+
+        for (let p = -26; p <= 26; p += 8.5) {
+          if (Math.abs(p + 4) < 7) continue;
+          const partWall = new THREE.Mesh(new THREE.BoxGeometry(0.28, floorH * 0.78, d * 0.82), MATS.wallWarm);
+          partWall.position.set(p, floorH * 0.45, 0);
+          fGroup.add(partWall);
+        }
+
+        const glassBand = new THREE.Mesh(new THREE.BoxGeometry(w - 0.8, floorH * 0.66, d - 0.25), yzWinMat);
+        glassBand.position.y = floorH * 0.52;
+        fGroup.add(glassBand);
+
+        const beamN = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, 0.55, 0.6), MATS.wallModern);
+        beamN.position.set(0, floorH - 0.25, -d * 0.5);
+        beamN.castShadow = true;
+        fGroup.add(beamN);
+
+        const beamS = beamN.clone();
+        beamS.position.z = d * 0.5;
+        fGroup.add(beamS);
+
+        for (let lx = -29; lx <= 29; lx += 3.2) {
+          const fin = new THREE.Mesh(
+            new THREE.BoxGeometry(0.2, floorH * 0.92, d + 0.55),
+            Math.abs(lx + 4) < 8 ? MATS.wallLaterite : MATS.louverWood
+          );
+          fin.position.set(lx, floorH * 0.5, 0);
+          fGroup.add(fin);
+        }
+
+        if (f === 1) {
+          const bridge = new THREE.Mesh(new THREE.BoxGeometry(5.2, floorH * 0.85, 21), MATS.wallModern);
+          bridge.position.set(-6, floorH * 0.42, 16);
+          bridge.castShadow = true;
+          bridge.receiveShadow = true;
+          fGroup.add(bridge);
+
+          for (const bz of [11, 20]) {
+            const col = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, floorH + 0.4, 12), MATS.wallConcrete);
+            col.position.set(-6, -floorH * 0.45, bz);
+            fGroup.add(col);
+          }
+        }
+
+        const tagEl = document.createElement('div');
+        tagEl.className = 'floor-tag';
+        tagEl.textContent = floorNames[f];
+        tagEl.style.opacity = '0';
+        const tagObj = new CSS2DObject(tagEl);
+        tagObj.position.set(-w * 0.5 - 3, floorH * 0.5, 0);
+        fGroup.add(tagObj);
+
+        yuezhiGroup.add(fGroup);
+        explodeParts.push({ obj: fGroup, baseY: restY, liftY: f * 2.55, tagEl });
+      }
+
+      const roofGroup = new THREE.Group();
+      const roofRestY = 5 * floorH;
+      roofGroup.position.y = roofRestY;
+
+      const mainRoof = new THREE.Mesh(new THREE.BoxGeometry(w + 1.8, 0.7, d + 1.8), MATS.wallConcrete);
+      mainRoof.position.y = 0.35;
+      mainRoof.castShadow = true;
+      roofGroup.add(mainRoof);
+
+      const libSkylight = new THREE.Mesh(new THREE.BoxGeometry(16, 1.4, d * 0.75), MATS.roofMetal);
+      libSkylight.position.set(-4, 1.1, 0);
+      libSkylight.castShadow = true;
+      roofGroup.add(libSkylight);
+
+      const yuezhiSolar = createSolarRoofArray(22, d * 0.8, 2, 5);
+      yuezhiSolar.position.set(16, 0.7, 0);
+      roofGroup.add(yuezhiSolar);
+
+      const rTagEl = document.createElement('div');
+      rTagEl.className = 'floor-tag';
+      rTagEl.textContent = 'RF 智慧綠能光電與隔熱斜頂';
+      rTagEl.style.opacity = '0';
+      const rTagObj = new CSS2DObject(rTagEl);
+      rTagObj.position.set(-w * 0.5 - 3, 1.2, 0);
+      roofGroup.add(rTagObj);
+
+      yuezhiGroup.add(roofGroup);
+      explodeParts.push({ obj: roofGroup, baseY: roofRestY, liftY: 5 * 2.55 + 1.2, tagEl: rTagEl });
+
+      registerLandmark({
+        id: 'yuezhi',
+        name: '悅知樓（新綜合教學大樓）',
+        shortName: '悅知樓',
+        category: 'core',
+        categoryLabel: '核心教學旗艦大樓',
+        metrics: [
+          { k: '建築規模', v: '地上 5 層' },
+          { k: '完工啟用', v: '2021 年底' },
+          { k: '空間核心', v: '圖書館・普通科' }
+        ],
+        summary: '原老舊悅知樓與迎曦樓原地拆除重建而成的現代化綠建築，以圖書館為核心串聯一、二年級普通教室、雙語實驗班與行政保健空間，縫合了早期校舍高低落差。',
+        specs: [
+          '立面採用紅土色與木紋垂直遮陽格柵，順應高山頂日照並呼應「迎曦御風」線條',
+          '2 樓設置無障礙景觀中廊跨越雙中庭，直接連通南側蘊慧樓',
+          '開啟下方「結構拆解」可分層檢視 1F 至 RF 立體空間與內部圖書館挑空核心'
+        ],
+        focusPoint: new THREE.Vector3(2, baseY + 7, 7),
+        camOffset: new THREE.Vector3(-28, 34, 48),
+        group: yuezhiGroup,
+        pinOffset: new THREE.Vector3(0, 10, 0)
+      });
+    }
+
+    // [2] 蘊慧樓
+    {
+      const yunhuiGroup = new THREE.Group();
+      const baseY = getTerrainHeight(0, 39);
+      yunhuiGroup.position.set(0, baseY, 39);
+      scene.add(yunhuiGroup);
+
+      const mainWing = createDetailedBlock({
+        w: 72, h: 10.2, d: 10.2, floors: 4, wallMat: MATS.wallWarm, addSolar: true
+      });
+      yunhuiGroup.add(mainWing);
+
+      const rotunda = new THREE.Mesh(
+        new THREE.CylinderGeometry(5.8, 6.2, 10.8, 24, 1, false, -Math.PI * 0.5, Math.PI),
+        MATS.wallModern
+      );
+      rotunda.rotation.y = Math.PI * 0.5;
+      rotunda.position.set(-4, 5.4, 5.0);
+      rotunda.castShadow = true;
+      rotunda.receiveShadow = true;
+      yunhuiGroup.add(rotunda);
+
+      registerLandmark({
+        id: 'yunhui',
+        name: '蘊慧樓（行政與專科教學大樓）',
+        shortName: '蘊慧樓',
+        category: 'core',
+        categoryLabel: '行政與專科大樓',
+        metrics: [
+          { k: '建築規模', v: '地上 4 層' },
+          { k: '屋頂配置', v: '太陽能光電群' },
+          { k: '立面特徵', v: '半圓中央門廳' }
+        ],
+        summary: '坐鎮中央日字型院落南側的長條形教學與行政重鎮，南向正立面擁有醒目的半圓形突出門廳，迎向校門車道與梅岡精神堡壘圓環。',
+        specs: [
+          '內部設有校史室、輔導室、各科教師辦公室與多間自然／人文專科教室',
+          '屋頂全面建置太陽能光電發電陣列，兼具遮陽隔熱與潔淨綠電產出',
+          '北側銜接東西兩座綠意中庭與二樓連通中廊'
+        ],
+        focusPoint: new THREE.Vector3(2, baseY + 6, 39),
+        camOffset: new THREE.Vector3(20, 26, 44),
+        group: yunhuiGroup,
+        pinOffset: new THREE.Vector3(6, 7.5, 0)
+      });
+    }
+
+    // [3] 梅岡精神堡壘與松林圓環
+    {
+      const fortGroup = new THREE.Group();
+      const fx = -4, fz = 52.5;
+      const baseY = getTerrainHeight(fx, fz);
+      fortGroup.position.set(fx, baseY, fz);
+      scene.add(fortGroup);
+
+      const outerRing = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.6, 0.45, 32), MATS.wallConcrete);
+      outerRing.position.y = 0.2;
+      outerRing.receiveShadow = true;
+      fortGroup.add(outerRing);
+
+      const innerLawn = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 0.55, 28), MATS.infieldGrass);
+      innerLawn.position.y = 0.25;
+      fortGroup.add(innerLawn);
+
+      const pedestal = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 2.4), MATS.wallModern);
+      pedestal.position.y = 1.2;
+      pedestal.castShadow = true;
+      fortGroup.add(pedestal);
+
+      const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.88, 7.2, 4), MATS.wallLaterite);
+      spire.position.y = 5.6;
+      spire.rotation.y = Math.PI / 4;
+      spire.castShadow = true;
+      fortGroup.add(spire);
+
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.31, 1.3, 4), MATS.wallLaterite);
+      tip.position.y = 9.85;
+      tip.rotation.y = Math.PI / 4;
+      fortGroup.add(tip);
+
+      registerLandmark({
+        id: 'spirit_fort',
+        name: '梅岡精神堡壘與松林圓環',
+        shortName: '梅岡精神堡壘',
+        category: 'eco',
+        categoryLabel: '校史精神象徵',
+        metrics: [
+          { k: '落成年代', v: '1974（民國63年）' },
+          { k: '造型意象', v: '高聳文筆鋒' },
+          { k: '核心校訓', v: '愛己・愛校・愛國' }
+        ],
+        summary: '由省立楊梅高中首任校長史振鼎於民國 63 年設立，高聳入雲的「文筆鋒」碑體矗立於蘊慧樓前圓環，基座鐫刻建校紀念文與梅岡精神三愛校訓。',
+        specs: [
+          '見證梅高自 1968 年接收啟明初中校地改制省中以來的半世紀歲月',
+          '可點擊左上角「步入人行視角」，以 1.7m 真人高度仰望文筆鋒與蘊慧樓門廳',
+          '周圍環繞蒼翠松木與樟樹，為歷屆校友返校與畢業留影之地標'
+        ],
+        focusPoint: new THREE.Vector3(fx, baseY + 4.5, fz),
+        camOffset: new THREE.Vector3(-18, 16, 26),
+        group: fortGroup,
+        pinOffset: new THREE.Vector3(0, 6.8, 0)
+      });
+    }
+
+    // [4] 御風樓・迎曦側翼與雙中庭
+    {
+      const wingsGroup = new THREE.Group();
+      const baseY = getTerrainHeight(-40, 20);
+      scene.add(wingsGroup);
+
+      const yufeng = createDetailedBlock({
+        w: 10.5, h: 10.4, d: 42, floors: 4, wallMat: MATS.wallWarm, addLouvers: true, addSolar: true
+      });
+      yufeng.position.set(-40, baseY, 20);
+      wingsGroup.add(yufeng);
+
+      const yingxi = createDetailedBlock({
+        w: 9.8, h: 10.0, d: 34, floors: 4, wallMat: MATS.wallModern
+      });
+      yingxi.position.set(38, getTerrainHeight(38, 21), 21);
+      wingsGroup.add(yingxi);
+
+      for (const cx of [-22, 16]) {
+        const pathH = new THREE.Mesh(new THREE.BoxGeometry(24, 0.14, 1.8), MATS.wallConcrete);
+        pathH.position.set(cx, getTerrainHeight(cx, 23) + 0.08, 23);
+        pathH.receiveShadow = true;
+        wingsGroup.add(pathH);
+      }
+
+      registerLandmark({
+        id: 'yufeng',
+        name: '御風樓・迎曦側翼與雙中庭',
+        shortName: '御風樓與雙中庭',
+        category: 'core',
+        categoryLabel: '院落教學空間',
+        metrics: [
+          { k: '院落格局', v: '日字型雙中庭' },
+          { k: '70週年意象', v: '梅岡70 迎曦御風' },
+          { k: '西翼頂層', v: '太陽能發電板' }
+        ],
+        summary: '西翼「御風樓」與東翼「迎曦側翼」連同悅知樓、蘊慧樓圍合出經典的「日」字型雙中庭院落，適度柔化高山頂台地冬季東北季風，並引入明亮自然光。',
+        specs: [
+          '呼應 70 週年校慶主題「梅岡 70・迎曦御風」與《梅高青年》人文精神',
+          '東西兩座內中庭種植成排樟樹並鋪設石板步道，營造寧靜讀書氛圍',
+          '四棟教學量體迴廊相通，雨天師生亦能無縫穿梭各專科教室'
+        ],
+        focusPoint: new THREE.Vector3(-40, baseY + 6, 20),
+        camOffset: new THREE.Vector3(-46, 30, 34),
+        group: wingsGroup,
+        pinOffset: new THREE.Vector3(0, 7, 0)
+      });
+    }
+
+    // [5] 紅土藝術空間（啟明樓藝文館）
+    {
+      const artGroup = new THREE.Group();
+      const ax = 36, az = 48;
+      const baseY = getTerrainHeight(ax, az);
+      artGroup.position.set(ax, baseY, az);
+      scene.add(artGroup);
+
+      const mainPavilion = createDetailedBlock({
+        w: 13.5, h: 11.2, d: 12.5, floors: 4, wallMat: MATS.wallModern
+      });
+      artGroup.add(mainPavilion);
+
+      const redWall = new THREE.Mesh(new THREE.BoxGeometry(4.2, 12.0, 13.2), MATS.wallLaterite);
+      redWall.position.set(4.8, 6.0, 0);
+      redWall.castShadow = true;
+      artGroup.add(redWall);
+
+      const galleryBox = new THREE.Mesh(new THREE.BoxGeometry(10.5, 3.0, 13.0), MATS.glassGallery);
+      galleryBox.position.set(-1.2, 9.2, 0);
+      artGroup.add(galleryBox);
+
+      for (let i = 0; i < 2; i++) {
+        const sculp = new THREE.Mesh(new THREE.OctahedronGeometry(0.95, 0), MATS.wallLaterite);
+        sculp.position.set(-3 + i * 4.2, 1.4, 8.2);
+        sculp.castShadow = true;
+        artGroup.add(sculp);
+      }
+
+      registerLandmark({
+        id: 'laterite_art',
+        name: '紅土藝術空間（啟明樓藝文館）',
+        shortName: '紅土藝術空間',
+        category: 'eco',
+        categoryLabel: '在地美學展館',
+        metrics: [
+          { k: '成立年份', v: '2008 年' },
+          { k: '美育典範', v: '謝孝德・何恆雄' },
+          { k: '樓層空間', v: '4F 藝廊・5F 演藝廳' }
+        ],
+        summary: '承襲 1968 年原「啟明初中」校名記憶的啟明樓空間，4 樓闢為以楊梅紅土台地命名的「紅土藝術空間」，傳承創校以來培育謝孝德、何恆雄等藝壇大師的美育風氣。',
+        specs: [
+          'Google 地圖標示之代表性文化展館地標，緊鄰高獅路 5 號正門',
+          '常態舉辦師生美展、傑出校友藝術家聯展與南桃園社區美學講座',
+          '5 樓並設有多功能演藝廳，支援「木棉獎」音樂賽與校內藝文展演'
+        ],
+        focusPoint: new THREE.Vector3(ax, baseY + 6, az),
+        camOffset: new THREE.Vector3(34, 24, 34),
+        group: artGroup,
+        pinOffset: new THREE.Vector3(2, 7.5, 0)
+      });
+    }
+
+    // [6] 仙旅奇緣生態農園與原生水生植物區 (NEW Landmark!)
+    {
+      const ecoGroup = new THREE.Group();
+      const ex = -28, ez = 53;
+      const baseY = getTerrainHeight(ex, ez);
+      ecoGroup.position.set(ex, baseY, ez);
+      scene.add(ecoGroup);
+
+      // Timber Pergola / Outdoor Classroom Trellis
+      const trellisRoof = new THREE.Mesh(new THREE.BoxGeometry(7.2, 0.25, 4.4), MATS.louverWood);
+      trellisRoof.position.set(-4.5, 2.8, -2);
+      trellisRoof.castShadow = true;
+      ecoGroup.add(trellisRoof);
+
+      for (const [px, pz] of [[-7.6, -3.8], [-1.4, -3.8], [-7.6, -0.2], [-1.4, -0.2]]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.25, 2.8, 0.25), MATS.louverWood);
+        post.position.set(px, 1.4, pz);
+        ecoGroup.add(post);
+      }
+
+      // Raised Mesona ("桃園二號仙草") Purple Flower Ridges!
+      for (let r = 0; r < 4; r++) {
+        const bedZ = 2.4 + r * 1.9;
+        const soilBed = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.35, 1.15), MATS.wallLaterite);
+        soilBed.position.set(-2, 0.18, bedZ);
+        soilBed.receiveShadow = true;
+        ecoGroup.add(soilBed);
+
+        const foliage = new THREE.Mesh(new THREE.BoxGeometry(10.0, 0.35, 0.95), MATS.mesonaLeaf);
+        foliage.position.set(-2, 0.45, bedZ);
+        ecoGroup.add(foliage);
+
+        // Purple Mesona Blossom Spikes
+        for (let b = -4.4; b <= 4.4; b += 1.1) {
+          const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), MATS.mesonaPurple);
+          bloom.scale.set(1.2, 0.85, 1.0);
+          bloom.position.set(-2 + b, 0.72, bedZ);
+          ecoGroup.add(bloom);
+        }
+      }
+
+      // Native Aquatic Plant Conservation Pools (台灣原生水生植物復育池)
+      for (let p = 0; p < 2; p++) {
+        const basin = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.4, 0.55, 20), MATS.wallConcrete);
+        basin.position.set(6.2, 0.28, -1.2 + p * 5.2);
+        ecoGroup.add(basin);
+
+        const water = new THREE.Mesh(new THREE.CylinderGeometry(2.05, 2.05, 0.62, 20), MATS.poolWater);
+        water.position.set(6.2, 0.3, -1.2 + p * 5.2);
+        ecoGroup.add(water);
+
+        // Emergent native aquatic plants (披針葉水蓑衣・水杉菜)
+        for (let q = 0; q < 4; q++) {
+          const reed = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.9, 6), MATS.mesonaLeaf);
+          reed.position.set(6.2 + Math.cos(q * 1.6) * 0.9, 0.8, -1.2 + p * 5.2 + Math.sin(q * 1.6) * 0.9);
+          ecoGroup.add(reed);
+        }
+      }
+
+      registerLandmark({
+        id: 'eco_garden',
+        name: '「仙旅奇緣」仙草農園與水生植物復育區',
+        shortName: '仙草與水生植物園',
+        category: 'eco',
+        categoryLabel: '校本課程生態場域',
+        metrics: [
+          { k: '特色作物', v: '桃園二號仙草' },
+          { k: '生態保育', v: '台灣原生水生植物' },
+          { k: '跨域學科', v: '生物・化學・家政' }
+        ],
+        summary: '結合楊梅在地仙草農業文化打造的實作園區，師生親手扦插培育紫色花穗搖曳的「桃園二號」仙草，並與研究機構合作復育披針葉水蓑衣、水杉菜等稀有原生水生植物。',
+        specs: [
+          '著名的「仙旅奇緣」校本課程基地，從田間栽培延伸至抗氧化化學萃取與仙草料理',
+          '紅土花畦綻放淡紫色仙草花海，呼應楊梅客庄紅土農業地景',
+          '雙座生態水池進行台灣原生濕地植物保種與物理、生物探究實作'
+        ],
+        focusPoint: new THREE.Vector3(ex, baseY + 2.5, ez + 2),
+        camOffset: new THREE.Vector3(-20, 16, 26),
+        group: ecoGroup,
+        pinOffset: new THREE.Vector3(0, 5.2, 0)
+      });
+    }
+
+    // [7] 楊梅高中日新樓
+    {
+      const rixinGroup = new THREE.Group();
+      const rx = -68, rz = -33;
+      const baseY = getTerrainHeight(rx, rz);
+      rixinGroup.position.set(rx, baseY, rz);
+      scene.add(rixinGroup);
+
+      const wing = new THREE.Group();
+      wing.rotation.y = 0.56;
+
+      const block = createDetailedBlock({
+        w: 34, h: 10.5, d: 9.5, floors: 4, wallMat: MATS.wallModern, addLouvers: true
+      });
+      wing.add(block);
+
+      const curvedEnd = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.2, 10.8, 24), MATS.wallWarm);
+      curvedEnd.position.set(-17.5, 5.4, 0.5);
+      curvedEnd.castShadow = true;
+      curvedEnd.receiveShadow = true;
+      wing.add(curvedEnd);
+      rixinGroup.add(wing);
+
+      const plazaOuter = new THREE.Mesh(new THREE.CylinderGeometry(6.8, 7.0, 0.25, 32), MATS.wallConcrete);
+      plazaOuter.position.set(5.5, 0.12, 8.5);
+      plazaOuter.receiveShadow = true;
+      rixinGroup.add(plazaOuter);
+
+      const plazaInner = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.42, 24), MATS.trackRed);
+      plazaInner.position.set(5.5, 0.22, 8.5);
+      rixinGroup.add(plazaInner);
+
+      registerLandmark({
+        id: 'rixin',
+        name: '楊梅高中日新樓與圓形廣場',
+        shortName: '日新樓',
+        category: 'core',
+        categoryLabel: '西北教學大樓',
+        metrics: [
+          { k: '建築規模', v: '地上 4 層' },
+          { k: '配置走向', v: '順應梅岡巷弧線' },
+          { k: '景觀焦點', v: '西翼圓弧・圓形廣場' }
+        ],
+        summary: '位於校園西北側、平行梅岡巷斜向舒展的教學大樓，西南端醒目的圓筒狀弧形收頭與前方同心圓景觀廣場，構成空拍視角最具幾何美感的角落。',
+        specs: [
+          '樓名呼應「梅高六六，日新又新」之校園革新精神',
+          '主要配置高年級普通班教室、專科教室與小型展演集會空間',
+          '隔梅岡巷與西北側梅中國宅社區緊密相鄰'
+        ],
+        focusPoint: new THREE.Vector3(rx, baseY + 5.5, rz),
+        camOffset: new THREE.Vector3(-34, 28, 38),
+        group: rixinGroup,
+        pinOffset: new THREE.Vector3(0, 7.5, 0)
+      });
+    }
+
+    // [8] 工科實習大樓
+    {
+      const techGroup = new THREE.Group();
+      const tx = -44, tz = -32;
+      const baseY = getTerrainHeight(tx, tz);
+      scene.add(techGroup);
+
+      const b1 = createDetailedBlock({
+        w: 11.5, h: 10.2, d: 19, floors: 4, wallMat: MATS.wallConcrete, addSolar: true
+      });
+      b1.position.set(-44, getTerrainHeight(-44, -44), -44);
+      techGroup.add(b1);
+
+      const b2 = createDetailedBlock({
+        w: 11.5, h: 10.2, d: 19, floors: 4, wallMat: MATS.wallWarm, addSolar: true
+      });
+      b2.position.set(-44, getTerrainHeight(-44, -21), -21);
+      techGroup.add(b2);
+
+      registerLandmark({
+        id: 'tech_workshop',
+        name: '工科實習大樓與生科大樓群',
+        shortName: '工科實習大樓',
+        category: 'core',
+        categoryLabel: '電子・資訊實習基地',
+        metrics: [
+          { k: '所屬科別', v: '電子科・資訊科' },
+          { k: '建築配置', v: '南北雙棟實習群' },
+          { k: '綠能設施', v: '全幅光電屋頂' }
+        ],
+        summary: '坐落於標準操場西側彎道與日新樓之間，為楊梅高中附設職業類科（電子科、資訊科）及生活科技課程進行硬體實作與國家技術士檢定訓練的專業基地。',
+        specs: [
+          '設電腦網路工場、基礎電子工場、數位邏輯設計與單晶片微電腦實習室',
+          '培育南桃園電機電子與資訊技術人才，與鄰近幼獅工業區產業鏈結',
+          '雙棟屋頂整齊鋪設高效率太陽能光電板，供應實習工場日間潔淨電力'
+        ],
+        focusPoint: new THREE.Vector3(tx, baseY + 6, tz),
+        camOffset: new THREE.Vector3(-36, 28, 32),
+        group: techGroup,
+        pinOffset: new THREE.Vector3(0, 7.5, 0)
+      });
+    }
+
+    // [9] 學生活動中心與室內溫水泳池
+    {
+      const actGroup = new THREE.Group();
+      const gx = 12, gz = 79;
+      const baseY = getTerrainHeight(gx, gz);
+      actGroup.position.set(gx, baseY, gz);
+      scene.add(actGroup);
+
+      const w = 23, d = 32;
+      const baseShell = new THREE.Mesh(new THREE.BoxGeometry(w + 1.2, 3.6, d + 1.2), MATS.wallConcrete);
+      baseShell.position.y = -1.6;
+      baseShell.receiveShadow = true;
+      actGroup.add(baseShell);
+
+      const poolWater = new THREE.Mesh(new THREE.BoxGeometry(w * 0.68, 0.5, d * 0.48), MATS.poolWater);
+      poolWater.position.set(0, 0.35, -4);
+      actGroup.add(poolWater);
+
+      for (let lr = -5; lr <= 5; lr += 2.5) {
+        const rope = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, 0.12, d * 0.46),
+          new THREE.MeshBasicMaterial({ color: lr === 0 ? 0xf05a43 : 0xf7d154 })
+        );
+        rope.position.set(lr, 0.64, -4);
+        actGroup.add(rope);
+      }
+
+      const midGroup = new THREE.Group();
+      midGroup.position.y = 0.6;
+
+      const courtFloor = new THREE.Mesh(new THREE.BoxGeometry(w * 0.88, 0.35, d * 0.88), MATS.woodFloor);
+      courtFloor.position.y = 0.2;
+      midGroup.add(courtFloor);
+
+      const actWinMat = createWindowMaterialClone();
+      for (const sx of [-1, 1]) {
+        const sideWall = new THREE.Mesh(new THREE.BoxGeometry(1.4, 7.6, d), MATS.wallWarm);
+        sideWall.position.set(sx * (w * 0.5 - 0.7), 3.8, 0);
+        sideWall.castShadow = true;
+        sideWall.receiveShadow = true;
+        midGroup.add(sideWall);
+
+        const bleacher = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2.4, d * 0.72), MATS.wallConcrete);
+        bleacher.position.set(sx * (w * 0.5 - 2.6), 2.8, 1.5);
+        midGroup.add(bleacher);
+      }
+
+      for (const sz of [-1, 1]) {
+        const endWall = new THREE.Mesh(new THREE.BoxGeometry(w, 7.6, 1.4), MATS.wallModern);
+        endWall.position.set(0, 3.8, sz * (d * 0.5 - 0.7));
+        endWall.castShadow = true;
+        midGroup.add(endWall);
+
+        const endGlass = new THREE.Mesh(new THREE.BoxGeometry(w * 0.74, 3.6, 1.68), actWinMat);
+        endGlass.position.set(0, 4.6, sz * (d * 0.5 - 0.7));
+        midGroup.add(endGlass);
+      }
+
+      const poolTagEl = document.createElement('div');
+      poolTagEl.className = 'floor-tag';
+      poolTagEl.textContent = '活動中心：1F 羽籃綜合球場・2F 看台 / B1 25×15m 溫水泳池';
+      poolTagEl.style.opacity = '0';
+      const poolTagObj = new CSS2DObject(poolTagEl);
+      poolTagObj.position.set(w * 0.5 + 2, 4.5, 0);
+      midGroup.add(poolTagObj);
+
+      actGroup.add(midGroup);
+      explodeParts.push({ obj: midGroup, baseY: 0.6, liftY: 3.4, tagEl: poolTagEl });
+
+      const roofAssy = new THREE.Group();
+      roofAssy.position.y = 8.2;
+      for (let b = 0; b < 4; b++) {
+        const bayRoof = new THREE.Mesh(
+          new THREE.CylinderGeometry(w * 0.54, w * 0.54, 7.3, 4, 1, false, Math.PI * 0.25, Math.PI * 0.5),
+          MATS.roofMetal
+        );
+        bayRoof.rotation.z = Math.PI / 2;
+        bayRoof.scale.set(0.32, 1, 1.32);
+        bayRoof.position.set(0, 0.6, -11.5 + b * 7.6);
+        bayRoof.castShadow = true;
+        roofAssy.add(bayRoof);
+      }
+
+      const roofFrame = new THREE.Mesh(new THREE.BoxGeometry(w + 1.4, 0.8, d + 1.4), MATS.roofMetal);
+      roofFrame.position.y = 0.2;
+      roofFrame.castShadow = true;
+      roofAssy.add(roofFrame);
+
+      actGroup.add(roofAssy);
+      explodeParts.push({ obj: roofAssy, baseY: 8.2, liftY: 8.4, tagEl: null });
+
+      registerLandmark({
+        id: 'activity_center',
+        name: '學生活動中心與室內溫水泳池',
+        shortName: '活動中心',
+        category: 'sport',
+        categoryLabel: '綜合體育展演館',
+        metrics: [
+          { k: '樓層配置', v: '地上 2F・地下 1F' },
+          { k: '看台容量', v: '約 700 席次' },
+          { k: '地下設施', v: '25×15m 溫水泳池' }
+        ],
+        summary: '順應南區台地階梯地形興建的大跨度銀色金屬屋頂場館，結合大型集會舞台、室內羽籃球場、社團練習空間與地下溫水游泳池，亦為體育班重點訓練基地。',
+        specs: [
+          '1 樓設四面羽球場、共用籃球場與展演舞台；2 樓為環繞式觀眾看台',
+          '地下 1 樓配置溫水游泳池、韻律教室與體適能重量訓練空間',
+          '點擊下方「結構拆解」可掀開金屬屋頂，透視木地板球場與水道線泳池'
+        ],
+        focusPoint: new THREE.Vector3(gx, baseY + 5, gz),
+        camOffset: new THREE.Vector3(38, 28, 42),
+        group: actGroup,
+        pinOffset: new THREE.Vector3(0, 8, 0)
+      });
+    }
+
+    // [10] 400m 標準運動場、球類場地與扇形白色司令台
+    {
+      const trackGroup = new THREE.Group();
+      const cx = 10, cz = -45;
+      const baseY = getTerrainHeight(cx, cz);
+      trackGroup.position.set(cx, baseY, cz);
+      scene.add(trackGroup);
+
+      const straightHalf = 24;
+      const outerR = 24.8;
+      const innerR = 17.8;
+
+      function makeStadiumShape(r, sh) {
+        const s = new THREE.Shape();
+        s.absarc(sh, 0, r, -Math.PI * 0.5, Math.PI * 0.5, false);
+        s.absarc(-sh, 0, r, Math.PI * 0.5, Math.PI * 1.5, false);
+        s.closePath();
+        return s;
+      }
+
+      const outerGeo = new THREE.ShapeGeometry(makeStadiumShape(outerR, straightHalf), 56);
+      outerGeo.rotateX(-Math.PI / 2);
+      const trackMesh = new THREE.Mesh(outerGeo, MATS.trackRed);
+      trackMesh.position.y = 0.08;
+      trackMesh.receiveShadow = true;
+      trackGroup.add(trackMesh);
+
+      for (let lane = 0; lane <= 5; lane++) {
+        const lr = innerR + 0.35 + lane * 1.25;
+        const pts = [];
+        const totalSegs = 96;
+        for (let i = 0; i <= totalSegs; i++) {
+          const u = i / totalSegs;
+          const arcL = Math.PI * lr;
+          const strL = straightHalf * 2;
+          const perim = 2 * strL + 2 * arcL;
+          let d = u * perim;
+          let px = 0, pz = 0;
+          if (d < strL) { px = -straightHalf + d; pz = lr; }
+          else if ((d -= strL) < arcL) { const a = Math.PI * 0.5 - (d / arcL) * Math.PI; px = straightHalf + Math.cos(a) * lr; pz = Math.sin(a) * lr; }
+          else if ((d -= arcL) < strL) { px = straightHalf - d; pz = -lr; }
+          else { d -= strL; const a = -Math.PI * 0.5 - (d / arcL) * Math.PI; px = -straightHalf + Math.cos(a) * lr; pz = Math.sin(a) * lr; }
+          pts.push(new THREE.Vector3(px, 0.13, pz));
+        }
+        trackGroup.add(new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(pts),
+          new THREE.LineBasicMaterial({ color: 0xf7f4ec, transparent: true, opacity: 0.72 })
+        ));
+      }
+
+      const innerGeo = new THREE.ShapeGeometry(makeStadiumShape(innerR, straightHalf), 48);
+      innerGeo.rotateX(-Math.PI / 2);
+      const infieldMesh = new THREE.Mesh(innerGeo, MATS.infieldGrass);
+      infieldMesh.position.y = 0.11;
+      infieldMesh.receiveShadow = true;
+      trackGroup.add(infieldMesh);
+
+      // Soccer Goals on Northern Turf Half
+      for (const gxSide of [-17, 15]) {
+        const goal = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.3, 3.6), MATS.shellWhite);
+        goal.position.set(gxSide, 0.75, -7.5);
+        trackGroup.add(goal);
+      }
+
+      const courtsApron = new THREE.Mesh(new THREE.PlaneGeometry(38, 18.5), MATS.trackRed);
+      courtsApron.rotation.x = -Math.PI / 2;
+      courtsApron.position.set(-1, 0.14, 6.2);
+      courtsApron.receiveShadow = true;
+      trackGroup.add(courtsApron);
+
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < 3; col++) {
+          const courtX = -13 + col * 12;
+          const courtZ = 1.8 + row * 8.6;
+          const court = new THREE.Mesh(
+            new THREE.PlaneGeometry(10.6, 7.4),
+            (row + col) % 2 === 0 ? MATS.courtBlue : MATS.courtGreen
+          );
+          court.rotation.x = -Math.PI / 2;
+          court.position.set(courtX, 0.18, courtZ);
+          trackGroup.add(court);
+
+          for (const side of [-4.8, 4.8]) {
+            const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.35, 6), MATS.solarFrame);
+            post.position.set(courtX + side, 0.85, courtZ);
+            trackGroup.add(post);
+            const board = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.55, 0.85), MATS.shellWhite);
+            board.position.set(courtX + side * 0.94, 1.45, courtZ);
+            trackGroup.add(board);
+          }
+        }
+      }
+
+      const tennisApron = new THREE.Mesh(new THREE.PlaneGeometry(13.5, 22), MATS.trackRed);
+      tennisApron.rotation.x = -Math.PI / 2;
+      tennisApron.position.set(27.5, 0.15, 0);
+      trackGroup.add(tennisApron);
+
+      for (let t = 0; t < 2; t++) {
+        const tx = 24.4 + t * 6.2;
+        const tc = new THREE.Mesh(new THREE.PlaneGeometry(5.4, 18.2), MATS.tennisMat);
+        tc.rotation.x = -Math.PI / 2;
+        tc.position.set(tx, 0.19, 0);
+        trackGroup.add(tc);
+
+        const net = new THREE.Mesh(
+          new THREE.BoxGeometry(4.8, 0.42, 0.08),
+          new THREE.MeshStandardMaterial({ color: 0xf0eee9, transparent: true, opacity: 0.8 })
+        );
+        net.position.set(tx, 0.4, 0);
+        trackGroup.add(net);
+      }
+
+      for (const [fx, fz] of [[-28, -22], [28, -22], [-28, 22], [28, 22]]) {
+        const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.26, 12, 8), MATS.solarFrame);
+        mast.position.set(fx, 6, fz);
+        mast.castShadow = true;
+        trackGroup.add(mast);
+
+        const headMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffe6b3, emissiveIntensity: 0.0 });
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.65, 0.7), headMat);
+        head.position.set(fx, 12.1, fz);
+        head.lookAt(0, 0, 0);
+        trackGroup.add(head);
+        nightLampBulbs.push(headMat);
+      }
+
+      // White Shell Podium + Flagpoles with Waving School Flags
+      const podiumGroup = new THREE.Group();
+      podiumGroup.position.set(4, 0, 29.5);
+
+      const podiumStage = new THREE.Mesh(
+        new THREE.CylinderGeometry(5.8, 6.6, 1.2, 24, 1, false, Math.PI * 0.5, Math.PI),
+        MATS.wallModern
+      );
+      podiumStage.rotation.y = Math.PI * 0.5;
+      podiumStage.position.y = 0.6;
+      podiumStage.castShadow = true;
+      podiumGroup.add(podiumStage);
+
+      const shellCanopy = new THREE.Mesh(
+        new THREE.SphereGeometry(6.8, 28, 16, 0, Math.PI, 0, Math.PI * 0.46),
+        MATS.shellWhite
+      );
+      shellCanopy.rotation.x = -0.35;
+      shellCanopy.scale.set(1.25, 0.72, 0.95);
+      shellCanopy.position.set(0, 2.2, 1.2);
+      shellCanopy.castShadow = true;
+      podiumGroup.add(shellCanopy);
+
+      for (let fp = -1; fp <= 1; fp++) {
+        const poleH = fp === 0 ? 8.2 : 7.0;
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, poleH, 6), MATS.solarFrame);
+        pole.position.set(-8.5 + fp * 1.8, poleH * 0.5, -1.5);
+        podiumGroup.add(pole);
+
+        const flag = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.5, 0.95, 6, 2),
+          new THREE.MeshStandardMaterial({
+            color: fp === 0 ? 0xc8372d : (fp === -1 ? 0x1d5d8c : 0xe8a838),
+            side: THREE.DoubleSide
+          })
+        );
+        flag.position.set(-8.5 + fp * 1.8 - 0.78, poleH - 0.55, -1.5);
+        podiumGroup.add(flag);
+        wavingFlags.push(flag);
+      }
+
+      trackGroup.add(podiumGroup);
+
+      registerLandmark({
+        id: 'sports_track',
+        name: '400m 標準運動場與白色扇形司令台',
+        shortName: '400m 操場與司令台',
+        category: 'sport',
+        categoryLabel: '戶外競技運動園區',
+        metrics: [
+          { k: '跑道規格', v: '400m 標準分道' },
+          { k: '內場設施', v: '6 籃排球・2 網球' },
+          { k: '校慶傳統', v: '為梅岡而跑起終點' }
+        ],
+        summary: '鋪展於台地北側平坦面的 400 公尺紅土色 PU 跑道，內場設有六面籃排球場、足球草坪與東側兩面網球場，南緣佇立流線型白色扇形薄膜司令台與升旗台。',
+        specs: [
+          '校慶路跑「為梅岡而跑」集結起終點，亦為全中運田徑隊日常訓練基地',
+          '四角配置高桿照明燈塔，切換右上角「夕照／星夜」即可點亮夜間運動場',
+          '動畫模式下可見跑者分道慢跑及升旗台旗幟隨台地季風飄揚'
+        ],
+        focusPoint: new THREE.Vector3(cx, baseY + 2, cz),
+        camOffset: new THREE.Vector3(0, 46, 66),
+        group: trackGroup,
+        pinOffset: new THREE.Vector3(4, 6.5, 28)
+      });
+    }
+
+    // [11] 北側太陽能光電風雨球場
+    {
+      const solarGroup = new THREE.Group();
+      const sx = 16, sz = -82;
+      const baseY = getTerrainHeight(sx, sz);
+      solarGroup.position.set(sx, baseY, sz);
+      solarGroup.rotation.y = 0.04;
+      scene.add(solarGroup);
+
+      for (let b = 0; b < 2; b++) {
+        const zOff = (b - 0.5) * 11.2;
+        const w = 38, d = 10.2, h = 6.6;
+
+        const slab = new THREE.Mesh(new THREE.BoxGeometry(w, 0.4, d), MATS.courtGreen);
+        slab.position.set(0, 0.2, zOff);
+        slab.receiveShadow = true;
+        solarGroup.add(slab);
+
+        for (let cx = -16; cx <= 16; cx += 8) {
+          for (const cz of [-4.4, 4.4]) {
+            const col = new THREE.Mesh(new THREE.BoxGeometry(0.45, h, 0.45), MATS.solarFrame);
+            col.position.set(cx, h * 0.5, zOff + cz);
+            col.castShadow = true;
+            solarGroup.add(col);
+          }
+        }
+
+        const pvRoof = new THREE.Mesh(new THREE.BoxGeometry(w + 1.2, 0.35, d + 0.8), MATS.solarPanel);
+        pvRoof.position.set(0, h + 0.3, zOff);
+        pvRoof.rotation.x = 0.11;
+        pvRoof.castShadow = true;
+        solarGroup.add(pvRoof);
+      }
+
+      registerLandmark({
+        id: 'solar_courts',
+        name: '北側太陽能光電風雨球場',
+        shortName: '太陽能光電球場',
+        category: 'sport',
+        categoryLabel: '智慧綠能運動場',
+        metrics: [
+          { k: '結構型式', v: '雙排長跨距鋼構' },
+          { k: 'PBR 材質', v: '單晶矽清漆反射' },
+          { k: '鄰接道路', v: '梅岡巷北段' }
+        ],
+        summary: '位於操場北側、緊鄰梅岡巷的兩座大型太陽能光電風雨球場，晴雨皆能提供體育課與社團活動使用，並以單晶矽太陽能板吸收高山頂充沛日照。',
+        specs: [
+          '頂棚導入 PBR 環境貼圖反射，隨鏡頭旋轉呈現真實玻璃與矽晶光澤',
+          '與工科大樓、御風樓、蘊慧樓、悅知樓共同組成校園潔淨能源網路',
+          '動畫「階段 3」可見金色綠電能量脈衝由頂棚輸送至核心教學大樓'
+        ],
+        focusPoint: new THREE.Vector3(sx, baseY + 5, sz),
+        camOffset: new THREE.Vector3(-18, 30, 44),
+        group: solarGroup,
+        pinOffset: new THREE.Vector3(0, 8.5, 0)
+      });
+    }
+
+    // [12] 高獅路 5 號校門與梅岡迎賓坡道
+    {
+      const gateGroup = new THREE.Group();
+      const gx = 43, gz = 54;
+      const baseY = getTerrainHeight(gx, gz);
+      scene.add(gateGroup);
+
+      const gateFrame = new THREE.Group();
+      gateFrame.position.set(gx, baseY, gz);
+      gateFrame.rotation.y = -0.32;
+
+      const pillarL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5.2, 2.2), MATS.wallLaterite);
+      pillarL.position.set(0, 2.6, -4.6);
+      pillarL.castShadow = true;
+      gateFrame.add(pillarL);
+
+      const pillarR = new THREE.Mesh(new THREE.BoxGeometry(2.8, 4.2, 4.2), MATS.wallModern);
+      pillarR.position.set(0, 2.1, 5.2);
+      pillarR.castShadow = true;
+      gateFrame.add(pillarR);
+
+      const gateBeam = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.9, 12.6), MATS.wallModern);
+      gateBeam.position.set(0, 4.8, 0.4);
+      gateBeam.castShadow = true;
+      gateFrame.add(gateBeam);
+      gateGroup.add(gateFrame);
+
+      for (let s = 0; s < 7; s++) {
+        const sz = 64 + s * 5.2;
+        const sx = -8.5;
+        const sy = getTerrainHeight(sx, sz);
+        const step = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.6, 4.6), MATS.wallConcrete);
+        step.position.set(sx, sy + 0.25, sz);
+        step.receiveShadow = true;
+        gateGroup.add(step);
+      }
+
+      registerLandmark({
+        id: 'gaoshi_gate',
+        name: '高獅路 5 號正門與梅岡迎賓坡道',
+        shortName: '高獅路校門',
+        category: 'env',
+        categoryLabel: '交通門戶與台地坡道',
+        metrics: [
+          { k: '正式門牌', v: '楊梅區高獅路 5 號' },
+          { k: '客運路線', v: 'T621・251・L608' },
+          { k: '高速路網', v: '近國1幼獅交流道' }
+        ],
+        summary: '楊梅高中正門設於校園東側高獅路 5 號，南側另有順著高山頂台地邊坡蜿蜒而上的迎賓車道與步道階梯，真實呈現「梅岡」居高臨下的丘陵台地門戶格局。',
+        specs: [
+          '沿高獅路往東北數分鐘可達國道一號幼獅交流道（學生專車重要轉運走廊）',
+          '搭乘 T621、251、L608 等公車約 10 分鐘可連接台鐵楊梅火車站',
+          '校門外側繪製行人穿越斑馬線與路燈，公車與接送車流依循坡度平順行駛'
+        ],
+        focusPoint: new THREE.Vector3(34, baseY + 2.5, 56),
+        camOffset: new THREE.Vector3(42, 26, 40),
+        group: gateGroup,
+        pinOffset: new THREE.Vector3(6, 6.5, -2)
+      });
+    }
+
+    // [13] 梅岡巷通學廊道與梅中國宅
+    {
+      const commGroup = new THREE.Group();
+      scene.add(commGroup);
+
+      const blocks = [
+        [-96, -38, 12, 13.5, 9, 0.56],
+        [-106, -52, 14, 14.5, 10, 0.56],
+        [-84, -68, 16, 11.5, 9, 0.58],
+        [-66, -82, 15, 10.5, 9, 0.58],
+        [-48, -96, 14, 10.0, 9, 0.58],
+        [-98, -82, 15, 12.0, 10, 0.58],
+        [-78, -98, 16, 11.5, 10, 0.58]
+      ];
+
+      blocks.forEach(([bx, bz, bw, bh, bd, rot]) => {
+        const apt = createDetailedBlock({
+          w: bw, h: bh, d: bd, floors: Math.round(bh / 3), wallMat: MATS.urbanBuilding
+        });
+        apt.position.set(bx, getTerrainHeight(bx, bz), bz);
+        apt.rotation.y = rot;
+        commGroup.add(apt);
+      });
+
+      for (const [stopX, stopZ] of [[-46, -65], [-34, -76]]) {
+        const sy = getTerrainHeight(stopX, stopZ);
+        const shelter = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.5, 1.5), MATS.solarPanel);
+        shelter.position.set(stopX, sy + 1.25, stopZ);
+        shelter.rotation.y = 0.58;
+        shelter.castShadow = true;
+        commGroup.add(shelter);
+      }
+
+      registerLandmark({
+        id: 'meigang_community',
+        name: '梅岡巷通學廊道與梅中國宅社區',
+        shortName: '梅岡巷・梅中國宅',
+        category: 'env',
+        categoryLabel: '西北社區與公車站',
+        metrics: [
+          { k: '地名由來', v: '源於梅岡校地別稱' },
+          { k: '大眾運輸', v: '雙向公車候車亭' },
+          { k: '鄰里聚落', v: '梅中國宅・14弄' }
+        ],
+        summary: '環繞校園西北側與西側的「梅岡巷」及對街的「梅中國宅」，皆直接因楊梅高中而得名，展現學校深耕地方七十餘年所形成的緊密通學生活圈。',
+        specs: [
+          '忠實對應 Google 地圖上操場西北側梅岡巷的兩處公車站牌與斑馬線位置',
+          '涵蓋梅中國宅、梅岡巷 1 弄與 14 弄整齊街廓，星夜模式下亮起萬家燈火',
+          '巷道沿日新樓圓弧西翼南下，串聯西側山坡與高獅路支線'
+        ],
+        focusPoint: new THREE.Vector3(-76, getTerrainHeight(-76, -64) + 6, -64),
+        camOffset: new THREE.Vector3(-42, 36, 48),
+        group: commGroup,
+        pinOffset: new THREE.Vector3(0, 10, 0)
+      });
+    }
+
+    // [14] 桃園台地埤塘生態水體
+    {
+      const pondGroup = new THREE.Group();
+      const px = 86, pz = -102;
+      const py = getTerrainHeight(px, pz) + 1.15;
+
+      const pondGeo = new THREE.CircleGeometry(24, 48);
+      pondGeo.rotateX(-Math.PI / 2);
+      pondGeo.scale(1.18, 1, 0.95);
+      const pondMat = new THREE.MeshPhysicalMaterial({
+        color: 0x367276,
+        roughness: 0.08,
+        metalness: 0.32,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.08,
+        transparent: true,
+        opacity: 0.92
+      });
+      pondWaterMesh = new THREE.Mesh(pondGeo, pondMat);
+      pondWaterMesh.position.set(px, py, pz);
+      pondWaterMesh.receiveShadow = true;
+      pondGroup.add(pondWaterMesh);
+
+      const bank = new THREE.Mesh(
+        new THREE.TorusGeometry(23.5, 0.65, 8, 36, Math.PI * 0.75),
+        MATS.wallConcrete
+      );
+      bank.rotation.x = Math.PI / 2;
+      bank.rotation.z = Math.PI * 0.65;
+      bank.position.set(px, py + 0.15, pz);
+      pondGroup.add(bank);
+
+      scene.add(pondGroup);
+
+      registerLandmark({
+        id: 'taoyuan_pond',
+        name: '東北側桃園台地埤塘與白鷺生態區',
+        shortName: '桃園台地埤塘',
+        category: 'eco',
+        categoryLabel: '台地水文與鳥類棲地',
+        metrics: [
+          { k: '地景類型', v: '桃園紅土台地埤塘' },
+          { k: '生態亮點', v: '白鷺鷥盤旋棲息' },
+          { k: '環境功能', v: '蓄水調節・微氣候' }
+        ],
+        summary: '位於校園東北隅（太陽能光電球場與高獅路北段之間）的蓄水埤塘，呈現「千塘之鄉」桃園紅土台地最具代表性的水文景觀，水面上方可見白鷺鷥展翅盤旋。',
+        specs: [
+          '忠實還原衛星影像東北角之碧綠水體與岸際林木緩衝帶',
+          '水面具備即時 PBR 天空反射與微風漣漪效果，隨晨昏變換色澤',
+          '調節高山頂台地局部微氣候，與校園水生植物復育理念相互呼應'
+        ],
+        focusPoint: new THREE.Vector3(px, py + 1, pz),
+        camOffset: new THREE.Vector3(-34, 30, 46),
+        group: pondGroup,
+        pinOffset: new THREE.Vector3(-4, 5, 4)
+      });
+    }
+
+    // [15] 東側樟樹相思林緩衝帶與路跑林道 (NEW Landmark!)
+    {
+      const woodsLandmarkGroup = new THREE.Group();
+      const wx = 68, wz = 22;
+      const wy = getTerrainHeight(wx, wz);
+
+      // Scenic Wooded Viewing Deck along 高獅路 East Slope
+      const deck = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.45, 9.5), MATS.louverWood);
+      deck.position.set(wx, wy + 0.3, wz);
+      deck.rotation.y = -0.3;
+      deck.receiveShadow = true;
+      woodsLandmarkGroup.add(deck);
+
+      const signBoard = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.2, 2.6), MATS.wallLaterite);
+      signBoard.position.set(wx - 2.2, wy + 1.4, wz);
+      signBoard.rotation.y = -0.3;
+      signBoard.castShadow = true;
+      woodsLandmarkGroup.add(signBoard);
+
+      scene.add(woodsLandmarkGroup);
+
+      registerLandmark({
+        id: 'egret_woods',
+        name: '高獅路東側樟樹相思林綠色廊道',
+        shortName: '東側樟樹綠林帶',
+        category: 'eco',
+        categoryLabel: '台地森林緩衝帶',
+        metrics: [
+          { k: '主要樹種', v: '樟樹・相思樹' },
+          { k: '環境機能', v: '防風隔音綠牆' },
+          { k: '活動連結', v: '校慶路跑林蔭段' }
+        ],
+        summary: '綿延於高獅路東側邊坡的濃密次生樟樹與相思樹林（空拍圖右側大片深綠林帶），為校園與東側工業廠區之間築起超過百公尺長的天然生態隔音防風屏障。',
+        specs: [
+          '有效過濾外部交通粉塵並減緩冬季東北季風直撲教學區',
+          '林冠吸引白鷺鷥、五色鳥等台灣淺山鳥類棲息覓食',
+          '林蔭高獅路段亦是「為梅岡而跑」師生路跑最具綠意的經典賽段'
+        ],
+        focusPoint: new THREE.Vector3(wx, wy + 4, wz),
+        camOffset: new THREE.Vector3(-36, 26, 36),
+        group: woodsLandmarkGroup,
+        pinOffset: new THREE.Vector3(2, 6, 0)
+      });
+    }
+
+    // [16] 週邊咖啡人文與東側綠能廠區
+    {
+      const envGroup = new THREE.Group();
+      scene.add(envGroup);
+
+      const hkX = 92, hkZ = -40;
+      const hkY = getTerrainHeight(hkX, hkZ);
+      const hunterCafe = createDetailedBlock({
+        w: 13, h: 6.4, d: 9.5, floors: 2, wallMat: MATS.wallModern, addLouvers: true
+      });
+      hunterCafe.position.set(hkX, hkY, hkZ);
+      hunterCafe.rotation.y = -0.22;
+      envGroup.add(hunterCafe);
+
+      const ymX = -10, ymZ = 108;
+      const ymY = getTerrainHeight(ymX, ymZ);
+      const yumingCafe = new THREE.Group();
+      yumingCafe.position.set(ymX, ymY, ymZ);
+      const cottage = new THREE.Mesh(new THREE.BoxGeometry(8.5, 4.2, 7.0), MATS.wallWarm);
+      cottage.position.y = 2.1;
+      cottage.castShadow = true;
+      yumingCafe.add(cottage);
+      const pitched = new THREE.Mesh(new THREE.ConeGeometry(6.6, 2.8, 4), MATS.wallLaterite);
+      pitched.position.y = 5.5;
+      pitched.rotation.y = Math.PI / 4;
+      pitched.castShadow = true;
+      yumingCafe.add(pitched);
+      envGroup.add(yumingCafe);
+
+      const indX = 106, indZ = 28;
+      const indY = getTerrainHeight(indX, indZ);
+      const factory = new THREE.Group();
+      factory.position.set(indX, indY, indZ);
+      factory.rotation.y = 0.22;
+      const facBody = new THREE.Mesh(new THREE.BoxGeometry(26, 9.5, 58), MATS.roofMetal);
+      facBody.position.y = 4.75;
+      facBody.castShadow = true;
+      facBody.receiveShadow = true;
+      factory.add(facBody);
+      const facSolar = createSolarRoofArray(24, 54, 8, 4);
+      facSolar.position.y = 9.6;
+      factory.add(facSolar);
+      envGroup.add(factory);
+
+      for (let i = 0; i < 4; i++) {
+        const hx = -92 + i * 5.5;
+        const hz = 74 + i * 9.5;
+        const hy = getTerrainHeight(hx, hz);
+        const house = new THREE.Mesh(new THREE.BoxGeometry(8.5, 6.5, 7.2), MATS.urbanBuilding);
+        house.position.set(hx, hy + 3.25, hz);
+        house.rotation.y = 0.38;
+        house.castShadow = true;
+        envGroup.add(house);
+      }
+
+      registerLandmark({
+        id: 'surrounding_eco',
+        name: '週邊咖啡人文與東側光電廠區',
+        shortName: '獵焰・郁明咖啡・廠區',
+        category: 'env',
+        categoryLabel: '高山頂週邊生活圈',
+        metrics: [
+          { k: '東北地標', v: 'Hunter Kaffe 獵焰' },
+          { k: '南口地標', v: '郁明咖啡農園' },
+          { k: '東側產業', v: '幼獅方向光電廠房' }
+        ],
+        summary: '完整呈現 Google 地圖中環繞楊梅高中的多元地景：東北側高獅路岔口坐落「Hunter Kaffe 獵焰咖啡」，南側雙叉林間設有「郁明咖啡農園」，東側隔樟樹林帶銜接大型太陽能屋頂廠房。',
+        specs: [
+          '反映高山頂台地兼具文教住宅、休閒咖啡農園與高科技工業廊帶的交會特色',
+          '東側廠房大面積太陽能屋頂與梅高綠能校園相互輝映',
+          '西南側高獅路 10 巷散落靜謐坡地住宅群'
+        ],
+        focusPoint: new THREE.Vector3(88, hkY + 4, -40),
+        camOffset: new THREE.Vector3(36, 36, 52),
+        group: envGroup,
+        pinOffset: new THREE.Vector3(4, 6, 0)
+      });
+    }
+
+    // Apply Time-of-Day Preset Function
+    function applyTimeMode(mode) {
+      currentTimeMode = mode;
+      document.body.dataset.time = mode;
+      document.querySelectorAll('.time-btn').forEach((b) => {
+        b.classList.toggle('is-active', b.dataset.mode === mode);
+      });
+
+      const p = TIME_PRESETS[mode];
+      scene.fog.color.setHex(p.fogColor);
+      scene.fog.density = p.fogDensity;
+      scene.environmentIntensity = p.envInt;
+
+      hemiLight.color.setHex(p.hemiSky);
+      hemiLight.groundColor.setHex(p.hemiGround);
+      hemiLight.intensity = p.hemiInt;
+
+      sunLight.color.setHex(p.sunColor);
+      sunLight.intensity = p.sunInt;
+      sunOrb.material.color.setHex(mode === 'night' ? 0xdbe9ff : p.sunColor);
+
+      fillLight.color.setHex(p.fillColor);
+      fillLight.intensity = p.fillInt;
+
+      bloomPass.strength = p.bloom;
+      renderer.toneMappingExposure = p.exposure;
+
+      if (starPoints) starPoints.material.opacity = p.starOpacity;
+      if (motePoints) motePoints.material.color.setHex(p.moteColor);
+
+      windowMaterials.forEach((wm) => {
+        wm.emissiveIntensity = p.winEmissive;
+      });
+      pickableMeshes.forEach((m) => {
+        if (m.userData.isWindow) {
+          m.userData.origEmissiveIntensity = p.winEmissive;
+        }
+      });
+
+      nightLampBulbs.forEach((bm) => { bm.emissiveIntensity = p.lampEmissive; });
+      nightSpotLights.forEach((sl) => {
+        sl.intensity = mode === 'night' ? 2.4 : (mode === 'dusk' ? 0.9 : 0);
+      });
+
+      updateThematicAnimation(0, true);
+    }
+
+    document.querySelectorAll('.time-btn').forEach((btn) => {
+      btn.addEventListener('click', () => applyTimeMode(btn.dataset.mode));
+    });
+
+    // ------------------------------------------------------------
+    // 9. Instanced Trees, Circling White Egrets & Horizon Clouds
+    // ------------------------------------------------------------
+    function populateCampusTrees() {
+      const treeCoords = [];
+
+      for (const tx of [-28, -22, -15, 8, 16, 25]) {
+        for (const tz of [17, 29]) {
+          treeCoords.push([tx + Math.sin(tz) * 1.5, tz, 1.05]);
+        }
+      }
+
+      for (const [px, pz] of [[-12, 51], [4, 51], [-10, 56], [2, 56]]) {
+        treeCoords.push([px, pz, 1.18]);
+      }
+
+      for (let tx = -34; tx <= 46; tx += 6.5) {
+        if (Math.abs(tx - 14) < 7) continue;
+        treeCoords.push([tx, -9.5, 1.15]);
+      }
+
+      for (let tx = 56; tx <= 88; tx += 6.6) {
+        for (let tz = -12; tz <= 108; tz += 7.0) {
+          const roadX = 67 - (tz + 10) * 0.34;
+          if (Math.abs(tx - roadX) < 6.5) continue;
+          if (tx > 86 && tz > -6 && tz < 60) continue;
+          if (Math.abs(tx - 68) < 5 && Math.abs(tz - 22) < 6) continue;
+          treeCoords.push([tx + Math.sin(tz * 1.7) * 2, tz + Math.cos(tx) * 2, 1.25 + (tx % 3) * 0.18]);
+        }
+      }
+
+      for (let tx = -112; tx <= 24; tx += 7.4) {
+        for (let tz = 56; tz <= 118; tz += 7.6) {
+          if (tx > -2 && tx < 28 && tz < 98) continue;
+          if (tx > -36 && tx < -18 && tz < 64) continue; // Keep Mesona eco_garden clear
+          if (Math.abs(tx + 10) < 8 && Math.abs(tz - 108) < 8) continue;
+          if (tx < -68 && tz > 66 && Math.abs(tx + 82) < 18) continue;
+          const swRoadZ = 104 + (tx - 10) * 0.68;
+          if (Math.abs(tz - swRoadZ) < 5.5) continue;
+          treeCoords.push([tx + Math.cos(tz) * 2, tz + Math.sin(tx) * 2, 1.2]);
+        }
+      }
+
+      for (let a = 0; a < 16; a++) {
+        const tx = 56 + (a % 4) * 6.2;
+        const tz = -82 + Math.floor(a / 4) * 11;
+        treeCoords.push([tx, tz, 1.22]);
+      }
+
+      const count = treeCoords.length;
+      const trunks = new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(0.28, 0.42, 2.2, 6),
+        new THREE.MeshStandardMaterial({ color: 0x5f4736, roughness: 0.92 }),
+        count
+      );
+      const crowns = new THREE.InstancedMesh(
+        new THREE.IcosahedronGeometry(2.15, 1),
+        new THREE.MeshStandardMaterial({ color: 0x4c7a46, roughness: 0.86 }),
+        count
+      );
+      trunks.castShadow = true;
+      crowns.castShadow = true;
+      crowns.receiveShadow = true;
+
+      const dummy = new THREE.Object3D();
+      const cVar = new THREE.Color();
+
+      treeCoords.forEach(([x, z, s], idx) => {
+        if (Math.abs(x) > halfT - 4 || Math.abs(z) > halfT - 4) return;
+        const y = getTerrainHeight(x, z);
+
+        dummy.position.set(x, y + 1.0 * s, z);
+        dummy.scale.set(s, s, s);
+        dummy.rotation.set(0, idx * 1.1, 0);
+        dummy.updateMatrix();
+        trunks.setMatrixAt(idx, dummy.matrix);
+
+        dummy.position.set(x, y + 3.1 * s, z);
+        dummy.scale.set(s * 1.12, s * 0.88, s * 1.08);
+        dummy.updateMatrix();
+        crowns.setMatrixAt(idx, dummy.matrix);
+
+        cVar.setHSL(0.29 + ((idx % 5) - 2) * 0.014, 0.35, 0.33 + (idx % 4) * 0.028);
+        crowns.setColorAt(idx, cVar);
+      });
+
+      trunks.instanceMatrix.needsUpdate = true;
+      crowns.instanceMatrix.needsUpdate = true;
+      if (crowns.instanceColor) crowns.instanceColor.needsUpdate = true;
+
+      scene.add(trunks);
+      scene.add(crowns);
+    }
+    populateCampusTrees();
+
+    // Circling White Egrets (白鷺鷥) above Pond & East Woods
+    const egrets = [];
+    {
+      const birdMat = new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.4, side: THREE.DoubleSide });
+      for (let b = 0; b < 5; b++) {
+        const bg = new THREE.Group();
+        const wingGeo = new THREE.PlaneGeometry(1.15, 0.45);
+        const wingL = new THREE.Mesh(wingGeo, birdMat);
+        wingL.position.x = -0.55;
+        const wingR = new THREE.Mesh(wingGeo, birdMat);
+        wingR.position.x = 0.55;
+        bg.add(wingL, wingR);
+        scene.add(bg);
+        egrets.push({
+          group: bg, wingL, wingR,
+          cx: b < 3 ? 82 : 68,
+          cz: b < 3 ? -98 : 16,
+          radius: 11 + (b % 3) * 4.5,
+          height: 15 + b * 2.2,
+          speed: 0.42 + (b % 2) * 0.12,
+          phase: b * 1.3
+        });
+      }
+    }
+
+    const clouds = [];
+    {
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff, roughness: 0.95, transparent: true, opacity: 0.5
+      });
+      for (let c = 0; c < 6; c++) {
+        const cg = new THREE.Group();
+        for (let p = 0; p < 4; p++) {
+          const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(6 + (p % 2) * 3, 1), cloudMat);
+          puff.position.set((p - 1.5) * 6.5, (p % 2) * 1.6, (p % 3 - 1) * 2.5);
+          puff.scale.set(1.5, 0.55, 1.0);
+          cg.add(puff);
+        }
+        cg.position.set(-140 + c * 58, 66 + (c % 3) * 8, -155 + (c % 2) * 35);
+        scene.add(cg);
+        clouds.push({ group: cg, speed: 1.8 + (c % 3) * 0.6 });
+      }
+    }
+
+    // ------------------------------------------------------------
+    // 10. Thematic 3D Animation System
+    // ------------------------------------------------------------
+    const animWorld = new THREE.Group();
+    scene.add(animWorld);
+
+    const vehicles = [];
+    function createVehicle(curve, speed, offset, isBus = false, color = 0xd96b43) {
+      const vg = new THREE.Group();
+      const bodyW = isBus ? 2.1 : 1.5;
+      const bodyH = isBus ? 1.9 : 1.15;
+      const bodyL = isBus ? 5.2 : 3.1;
+
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(bodyW, bodyH, bodyL),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.4 })
+      );
+      body.position.y = bodyH * 0.5 + 0.25;
+      body.castShadow = true;
+      vg.add(body);
+
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(bodyW * 0.92, 0.3, bodyL * 0.86), MATS.shellWhite);
+      roof.position.y = bodyH + 0.3;
+      vg.add(roof);
+
+      const hl = new THREE.Mesh(
+        new THREE.BoxGeometry(bodyW * 0.78, 0.22, 0.12),
+        new THREE.MeshBasicMaterial({ color: 0xfff3b8 })
+      );
+      hl.position.set(0, 0.65, bodyL * 0.5 + 0.04);
+      vg.add(hl);
+
+      animWorld.add(vg);
+      vehicles.push({ mesh: vg, curve, speed, offset });
+    }
+
+    createVehicle(gaoshiMain.curve, 0.055, 0.12, true, 0xd96b43);
+    createVehicle(gaoshiMain.curve, -0.072, 0.78, false, 0xf2efe9);
+    createVehicle(meigangLn.curve, 0.048, 0.08, true, 0x2f7699);
+    createVehicle(meigangLn.curve, -0.068, 0.62, false, 0xd8c38a);
+    createVehicle(campusGateDrive.curve, 0.065, 0.25, false, 0x476b59);
+
+    const runners = [];
+    const trackCenter = new THREE.Vector3(10, getTerrainHeight(10, -45) + 0.15, -45);
+    for (let i = 0; i < 8; i++) {
+      const rg = new THREE.Group();
+      const torso = new THREE.Mesh(
+        new THREE.CapsuleGeometry(0.32, 0.75, 4, 8),
+        new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xb54830 : 0x1d5d8c, roughness: 0.5 })
+      );
+      torso.position.y = 0.75;
+      torso.castShadow = true;
+      rg.add(torso);
+      animWorld.add(rg);
+      runners.push({ mesh: rg, laneR: 18.6 + (i % 4) * 1.25, speed: 0.075 + (i % 3) * 0.014, offset: i / 8 });
+    }
+
+    const energyPulses = [];
+    const energyPaths = [
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(16, getTerrainHeight(16, -82) + 7.2, -82),
+        new THREE.Vector3(14, 14, -38),
+        new THREE.Vector3(8, 17, 7)
+      ]),
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-44, getTerrainHeight(-44, -44) + 11, -44),
+        new THREE.Vector3(-24, 16, -16),
+        new THREE.Vector3(-4, 17, 7)
+      ]),
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-40, getTerrainHeight(-40, 20) + 11, 20),
+        new THREE.Vector3(-22, 16, 32),
+        new THREE.Vector3(-4, 16, 39)
+      ])
+    ];
+
+    energyPaths.forEach((curve) => {
+      const arcLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(curve.getPoints(36)),
+        new THREE.LineBasicMaterial({ color: 0xf4b942, transparent: true, opacity: 0.35 })
+      );
+      animWorld.add(arcLine);
+
+      for (let k = 0; k < 3; k++) {
+        const orb = new THREE.Mesh(
+          new THREE.SphereGeometry(0.58, 12, 12),
+          new THREE.MeshBasicMaterial({ color: 0xffe07d })
+        );
+        animWorld.add(orb);
+        energyPulses.push({ mesh: orb, curve, offset: k / 3, arcLine });
+      }
+    });
+
+    const windStreams = [];
+    for (let w = 0; w < 4; w++) {
+      const zBase = -58 + w * 34;
+      const windCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(98, 22 + w * 2, zBase - 12),
+        new THREE.Vector3(32, 20 + Math.sin(w) * 3, zBase),
+        new THREE.Vector3(-34, 19 + w * 1.5, zBase + 10),
+        new THREE.Vector3(-98, 16 + w, zBase + 18)
+      ]);
+      const packet = new THREE.Mesh(
+        new THREE.ConeGeometry(0.45, 4.2, 8),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+      );
+      packet.rotation.x = Math.PI / 2;
+      animWorld.add(packet);
+      windStreams.push({ mesh: packet, curve: windCurve, offset: w * 0.25 });
+    }
+
+    const CYCLE_DURATION = 24.0;
+    let animTime = 0;
+    let isPlaying = true;
+    let manualExplodeLock = false;
+    let currentExplode = 0;
+
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    const iconPause = document.getElementById('icon-pause');
+    const iconPlay = document.getElementById('icon-play');
+    const playPauseLabel = document.getElementById('play-pause-label');
+    const scrubber = document.getElementById('anim-scrubber');
+    const phaseTitle = document.getElementById('phase-title');
+    const phaseSub = document.getElementById('phase-sub');
+    const btnExplode = document.getElementById('btn-explode');
+
+    function setPlayingState(play) {
+      isPlaying = play;
+      btnPlayPause.setAttribute('aria-pressed', String(play));
+      iconPause.style.display = play ? 'block' : 'none';
+      iconPlay.style.display = play ? 'none' : 'block';
+      playPauseLabel.textContent = play ? '暫停動畫' : '播放動畫';
+    }
+
+    btnPlayPause.addEventListener('click', () => setPlayingState(!isPlaying));
+
+    scrubber.addEventListener('input', (e) => {
+      animTime = (Number(e.target.value) / 1000) * CYCLE_DURATION;
+      updateThematicAnimation(0, true);
+    });
+
+    btnExplode.addEventListener('click', () => {
+      manualExplodeLock = !manualExplodeLock;
+      btnExplode.classList.toggle('is-active', manualExplodeLock);
+      if (manualExplodeLock) {
+        exitStreetViewFlag();
+        flyTo(new THREE.Vector3(6, 10, 28), new THREE.Vector3(-42, 46, 86), 0.9);
+      }
+    });
+
+    function getStadiumPoint(u, radius) {
+      const sh = 24;
+      const straightLen = sh * 2;
+      const arcLen = Math.PI * radius;
+      const total = 2 * straightLen + 2 * arcLen;
+      let d = ((u % 1) + 1) % 1 * total;
+
+      if (d < straightLen) return new THREE.Vector3(-sh + d, 0, radius);
+      d -= straightLen;
+      if (d < arcLen) {
+        const ang = Math.PI * 0.5 - (d / arcLen) * Math.PI;
+        return new THREE.Vector3(sh + Math.cos(ang) * radius, 0, Math.sin(ang) * radius);
+      }
+      d -= arcLen;
+      if (d < straightLen) return new THREE.Vector3(sh - d, 0, -radius);
+      d -= straightLen;
+      const ang = -Math.PI * 0.5 - (d / arcLen) * Math.PI;
+      return new THREE.Vector3(-sh + Math.cos(ang) * radius, 0, Math.sin(ang) * radius);
+    }
+
+    function updateThematicAnimation(dt, forceUpdate = false) {
+      if (isPlaying && !forceUpdate) {
+        animTime = (animTime + dt) % CYCLE_DURATION;
+        scrubber.value = String(Math.round((animTime / CYCLE_DURATION) * 1000));
+      }
+
+      const cycleNorm = animTime / CYCLE_DURATION;
+
+      let targetExplode = 0;
+      if (manualExplodeLock) {
+        targetExplode = 1;
+        phaseTitle.textContent = '校舍立體結構拆解（常駐）';
+        phaseSub.textContent = '透視悅知樓 5 層圖書館核心與活動中心溫水泳池';
+      } else if (animTime < 8.0) {
+        targetExplode = 0;
+        phaseTitle.textContent = '階段 1｜梅岡通學與操場脈動';
+        phaseSub.textContent = '公車通學・400m 跑道運動・埤塘白鷺飛翔';
+      } else if (animTime < 16.5) {
+        targetExplode = smoothstep(8.0, 10.2, animTime) * (1.0 - smoothstep(14.3, 16.5, animTime));
+        phaseTitle.textContent = '階段 2｜核心校舍 3D 結構拆解';
+        phaseSub.textContent = '悅知樓五層樓板抬升・活動中心屋頂與地下泳池';
+      } else {
+        targetExplode = 0;
+        phaseTitle.textContent = '階段 3｜台地日照與太陽能綠電';
+        phaseSub.textContent = '高山頂日軌陰影變化・光電球場潔淨能源輸送';
+      }
+
+      currentExplode = THREE.MathUtils.lerp(currentExplode, targetExplode, forceUpdate ? 1 : Math.min(1, dt * 7));
+      explodeParts.forEach((part) => {
+        part.obj.position.y = part.baseY + part.liftY * currentExplode;
+        if (part.tagEl) part.tagEl.style.opacity = currentExplode > 0.55 ? '1' : '0';
+      });
+
+      vehicles.forEach((v) => {
+        let u = (animTime * v.speed + v.offset) % 1;
+        if (u < 0) u += 1;
+        const p = v.curve.getPointAt(u);
+        const tangent = v.curve.getTangentAt(u);
+        v.mesh.position.copy(p);
+        const dirSign = v.speed >= 0 ? 1 : -1;
+        v.mesh.lookAt(p.x + tangent.x * dirSign, p.y + tangent.y * dirSign, p.z + tangent.z * dirSign);
+      });
+
+      runners.forEach((r) => {
+        const u = animTime * r.speed + r.offset;
+        const p0 = getStadiumPoint(u, r.laneR);
+        const p1 = getStadiumPoint(u + 0.005, r.laneR);
+        const bob = Math.abs(Math.sin(animTime * 9 + r.offset * 20)) * 0.22;
+        r.mesh.position.set(trackCenter.x + p0.x, trackCenter.y + bob, trackCenter.z + p0.z);
+        r.mesh.lookAt(trackCenter.x + p1.x, trackCenter.y + bob, trackCenter.z + p1.z);
+      });
+
+      // Circling White Egrets
+      egrets.forEach((eg) => {
+        const ang = animTime * eg.speed + eg.phase;
+        const nx = eg.cx + Math.cos(ang) * eg.radius;
+        const nz = eg.cz + Math.sin(ang) * eg.radius;
+        const ny = eg.height + Math.sin(ang * 2) * 1.1;
+        eg.group.position.set(nx, ny, nz);
+        eg.group.rotation.y = -ang;
+        const flap = Math.sin(animTime * 7.5 + eg.phase) * 0.45;
+        eg.wingL.rotation.z = flap;
+        eg.wingR.rotation.z = -flap;
+      });
+
+      // Waving Flags
+      wavingFlags.forEach((fl, idx) => {
+        fl.rotation.y = Math.sin(animTime * 4.5 + idx) * 0.22;
+      });
+
+      // Gentle Floating Pollen / Firefly Motes
+      if (motePoints) {
+        const posAttr = motePoints.geometry.attributes.position;
+        for (let i = 0; i < moteCount; i++) {
+          posAttr.setY(i, moteBaseY[i] + Math.sin(animTime * 1.4 + i) * 0.9);
+        }
+        posAttr.needsUpdate = true;
+      }
+
+      const preset = TIME_PRESETS[currentTimeMode];
+      const sway = Math.sin(cycleNorm * Math.PI * 2) * 26;
+      sunLight.position.set(preset.sunBase[0] + sway * 0.6, preset.sunBase[1], preset.sunBase[2] + sway);
+      sunOrb.position.copy(sunLight.position).multiplyScalar(1.65);
+
+      const energyBoost = animTime >= 16.5 ? 1.05 : 0.55;
+      energyPulses.forEach((ep) => {
+        const u = (animTime * 0.36 + ep.offset) % 1;
+        ep.mesh.position.copy(ep.curve.getPointAt(u));
+        ep.mesh.scale.setScalar((0.7 + Math.sin(u * Math.PI) * 0.55) * energyBoost);
+        ep.arcLine.material.opacity = animTime >= 16.5 ? 0.65 : 0.24;
+      });
+
+      windStreams.forEach((ws) => {
+        const u = (animTime * 0.16 + ws.offset) % 1;
+        const p = ws.curve.getPointAt(u);
+        const t = ws.curve.getTangentAt(u);
+        ws.mesh.position.copy(p);
+        ws.mesh.lookAt(p.x + t.x, p.y + t.y, p.z + t.z);
+        ws.mesh.rotateX(Math.PI / 2);
+        ws.mesh.material.opacity = Math.sin(u * Math.PI) * 0.48;
+      });
+
+      if (isPlaying && !forceUpdate) {
+        clouds.forEach((cl) => {
+          cl.group.position.x += dt * cl.speed;
+          if (cl.group.position.x > 190) cl.group.position.x = -190;
+        });
+      }
+
+      if (pondWaterMesh) {
+        pondWaterMesh.position.y = getTerrainHeight(86, -102) + 1.15 + Math.sin(animTime * 2.2) * 0.045;
+      }
+    }
+
+    // ------------------------------------------------------------
+    // 11. UI Interactions: Street-Level View, Filters, Search & Tours
+    // ------------------------------------------------------------
+    function exitStreetViewFlag() {
+      isStreetView = false;
+      btnStreetView.classList.remove('is-active');
+    }
+
+    btnStreetView.addEventListener('click', () => {
+      stopGuidedTour();
+      isStreetView = !isStreetView;
+      btnStreetView.classList.toggle('is-active', isStreetView);
+      if (isStreetView) {
+        // Human eye-level (1.75m above ground) standing at the South Entrance Plaza looking across 梅岡精神堡壘 toward 蘊慧樓 & 悅知樓!
+        const standY = getTerrainHeight(-4, 65) + 2.1;
+        flyTo(new THREE.Vector3(-4, getTerrainHeight(-4, 48) + 5.2, 46), new THREE.Vector3(-4, standY, 65), 1.1);
+      } else {
+        resetToOverview();
+      }
+    });
+
+    const guideDrawer = document.getElementById('guide-drawer');
+    const btnOpenGuide = document.getElementById('btn-open-guide');
+    const btnCloseGuide = document.getElementById('btn-close-guide');
+
+    function toggleGuideDrawer(forceState) {
+      const next = typeof forceState === 'boolean' ? forceState : !guideDrawer.classList.contains('is-open');
+      guideDrawer.classList.toggle('is-open', next);
+      btnOpenGuide.setAttribute('aria-expanded', String(next));
+    }
+
+    btnOpenGuide.addEventListener('click', () => toggleGuideDrawer());
+    btnCloseGuide.addEventListener('click', () => toggleGuideDrawer(false));
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('is-active', b === btn));
+        document.querySelectorAll('.tab-pane').forEach((p) => p.classList.toggle('is-active', p.id === `tab-${target}`));
+      });
+    });
+
+    document.querySelectorAll('.jump-link').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        stopGuidedTour();
+        exitStreetViewFlag();
+        if (window.innerWidth <= 768) toggleGuideDrawer(false);
+        selectLandmark(btn.dataset.jump);
+      });
+    });
+
+    // Searchable 16-Landmark Directory inside Chapter 6
+    const dirGrid = document.getElementById('directory-grid');
+    const searchInput = document.getElementById('landmark-search');
+
+    function renderDirectory(query = '') {
+      const q = query.trim().toLowerCase();
+      dirGrid.innerHTML = '';
+      landmarks.forEach((lm) => {
+        const hay = `${lm.name} ${lm.shortName} ${lm.summary} ${lm.specs.join(' ')}`.toLowerCase();
+        if (q && !hay.includes(q)) return;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'dir-btn';
+        b.textContent = lm.shortName;
+        b.addEventListener('click', () => {
+          stopGuidedTour();
+          exitStreetViewFlag();
+          if (window.innerWidth <= 768) toggleGuideDrawer(false);
+          selectLandmark(lm.id);
+        });
+        dirGrid.appendChild(b);
+      });
+    }
+    renderDirectory();
+    searchInput.addEventListener('input', (e) => renderDirectory(e.target.value));
+
+    const TOUR_ROUTES = {
+      campus: ['gaoshi_gate', 'spirit_fort', 'yuezhi', 'yunhui', 'yufeng', 'sports_track', 'activity_center'],
+      green: ['solar_courts', 'tech_workshop', 'rixin', 'yufeng', 'yuezhi'],
+      eco_art: ['eco_garden', 'laterite_art', 'egret_woods', 'taoyuan_pond', 'surrounding_eco'],
+      streets: ['gaoshi_gate', 'meigang_community', 'taoyuan_pond', 'surrounding_eco']
+    };
+
+    document.querySelectorAll('.tour-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        const wasRunning = card.classList.contains('is-running');
+        stopGuidedTour();
+        if (wasRunning) return;
+
+        const route = TOUR_ROUTES[card.dataset.tour];
+        if (!route) return;
+        exitStreetViewFlag();
+        card.classList.add('is-running');
+        if (window.innerWidth <= 768) toggleGuideDrawer(false);
+
+        let step = 0;
+        selectLandmark(route[step]);
+        activeTourTimer = setInterval(() => {
+          step = (step + 1) % route.length;
+          selectLandmark(route[step]);
+        }, 4800);
+      });
+    });
+
+    // Bottom Strip + Category Filter
+    const landmarkStrip = document.getElementById('landmark-strip');
+    const infoCard = document.getElementById('info-card');
+    const infoBadge = document.getElementById('info-badge');
+    const infoTitle = document.getElementById('info-title');
+    const infoMetrics = document.getElementById('info-metrics');
+    const infoSummary = document.getElementById('info-summary');
+    const infoSpecs = document.getElementById('info-specs');
+    const infoClose = document.getElementById('info-close');
+    const infoPrevBtn = document.getElementById('info-prev-btn');
+    const infoNextBtn = document.getElementById('info-next-btn');
+    const infoBackBtn = document.getElementById('info-back-btn');
+    const btnOverview = document.getElementById('btn-overview');
+    const btnLabels = document.getElementById('btn-labels');
+
+    let selectedId = null;
+    let labelsVisible = true;
+
+    const highlightRing = new THREE.Mesh(
+      new THREE.RingGeometry(7.2, 8.8, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0xe0583c, side: THREE.DoubleSide, transparent: true, opacity: 0.88,
+        polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6
+      })
+    );
+    highlightRing.rotation.x = -Math.PI / 2;
+    highlightRing.visible = false;
+    scene.add(highlightRing);
+
+    landmarks.forEach((lm) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.dataset.cat = lm.category;
+      chip.textContent = lm.shortName;
+      chip.addEventListener('click', () => {
+        stopGuidedTour();
+        exitStreetViewFlag();
+        selectLandmark(lm.id);
+      });
+      landmarkStrip.appendChild(chip);
+      lm.chipEl = chip;
+    });
+
+    document.querySelectorAll('.filter-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const f = pill.dataset.filter;
+        document.querySelectorAll('.filter-pill').forEach((p) => p.classList.toggle('is-active', p === pill));
+        landmarks.forEach((lm) => {
+          const match = f === 'all' || lm.category === f;
+          lm.chipEl.classList.toggle('is-hidden', !match);
+        });
+      });
+    });
+
+    function clearSelection() {
+      selectedId = null;
+      highlightRing.visible = false;
+      infoCard.classList.remove('is-open');
+
+      landmarks.forEach((lm) => {
+        lm.pinEl.classList.remove('is-active');
+        lm.chipEl.classList.remove('is-active');
+        lm.meshes.forEach((m) => {
+          if (m.material.emissive) {
+            m.material.emissive.copy(m.userData.origEmissive);
+            m.material.emissiveIntensity = m.userData.origEmissiveIntensity;
+          }
+        });
+      });
+    }
+
+    function selectLandmark(id) {
+      const lm = landmarks.find((item) => item.id === id);
+      if (!lm) return;
+
+      clearSelection();
+      selectedId = id;
+
+      lm.meshes.forEach((m) => {
+        if (m.material.emissive) {
+          m.material.emissive.setHex(0xd45638);
+          m.material.emissiveIntensity = Math.max(0.38, m.userData.origEmissiveIntensity + 0.25);
+        }
+      });
+
+      lm.pinEl.classList.add('is-active');
+      lm.chipEl.classList.add('is-active');
+
+      if (!lm.chipEl.classList.contains('is-hidden')) {
+        const stripRect = landmarkStrip.getBoundingClientRect();
+        const chipRect = lm.chipEl.getBoundingClientRect();
+        landmarkStrip.scrollLeft += (chipRect.left + chipRect.width * 0.5) - (stripRect.left + stripRect.width * 0.5);
+      }
+
+      const gy = getTerrainHeight(lm.focusPoint.x, lm.focusPoint.z);
+      highlightRing.position.set(lm.focusPoint.x, gy + 0.32, lm.focusPoint.z);
+      highlightRing.visible = true;
+
+      infoBadge.className = `info-badge cat-${lm.category}`;
+      infoBadge.textContent = lm.categoryLabel;
+      infoTitle.textContent = lm.name;
+      infoSummary.textContent = lm.summary;
+
+      infoMetrics.innerHTML = '';
+      (lm.metrics || []).forEach(({ k, v }) => {
+        const cell = document.createElement('div');
+        cell.className = 'info-metric-cell';
+        cell.innerHTML = `<span class="metric-k">${k}</span><span class="metric-v">${v}</span>`;
+        infoMetrics.appendChild(cell);
+      });
+
+      infoSpecs.innerHTML = '';
+      lm.specs.forEach((txt) => {
+        const li = document.createElement('li');
+        li.textContent = txt;
+        infoSpecs.appendChild(li);
+      });
+      infoCard.classList.add('is-open');
+
+      flyTo(lm.focusPoint, lm.focusPoint.clone().add(lm.camOffset), 0.92);
+    }
+
+    infoPrevBtn.addEventListener('click', () => {
+      stopGuidedTour();
+      exitStreetViewFlag();
+      const idx = landmarks.findIndex((l) => l.id === selectedId);
+      const prevIdx = (idx - 1 + landmarks.length) % landmarks.length;
+      selectLandmark(landmarks[prevIdx].id);
+    });
+
+    infoNextBtn.addEventListener('click', () => {
+      stopGuidedTour();
+      exitStreetViewFlag();
+      const idx = landmarks.findIndex((l) => l.id === selectedId);
+      const nextIdx = (idx + 1) % landmarks.length;
+      selectLandmark(landmarks[nextIdx].id);
+    });
+
+    function resetToOverview() {
+      stopGuidedTour();
+      exitStreetViewFlag();
+      clearSelection();
+      if (manualExplodeLock) {
+        manualExplodeLock = false;
+        btnExplode.classList.remove('is-active');
+      }
+      flyTo(INITIAL_TARGET, INITIAL_CAM_POS, 1.0);
+    }
+
+    btnOverview.addEventListener('click', resetToOverview);
+    infoBackBtn.addEventListener('click', resetToOverview);
+    infoClose.addEventListener('click', () => {
+      stopGuidedTour();
+      clearSelection();
+    });
+
+    btnLabels.addEventListener('click', () => {
+      labelsVisible = !labelsVisible;
+      btnLabels.classList.toggle('is-active', labelsVisible);
+      labelLayer.style.display = labelsVisible ? 'block' : 'none';
+    });
+
+    // Live 2D Topographic Radar Minimap
+    const miniCanvas = document.getElementById('minimap-canvas');
+    const miniCtx = miniCanvas.getContext('2d');
+
+    function worldToMini(wx, wz) {
+      const size = miniCanvas.width;
+      return [((wx + halfT) / TERRAIN_SIZE) * size, ((wz + halfT) / TERRAIN_SIZE) * size];
+    }
+
+    function drawMinimap() {
+      if (window.innerWidth <= 920) return;
+      const w = miniCanvas.width;
+      const isNight = currentTimeMode === 'night';
+
+      miniCtx.clearRect(0, 0, w, w);
+      miniCtx.fillStyle = isNight ? '#172332' : '#e6e1d6';
+      miniCtx.fillRect(0, 0, w, w);
+
+      const [px, pz] = worldToMini(86, -102);
+      miniCtx.fillStyle = '#4b868a';
+      miniCtx.beginPath();
+      miniCtx.ellipse(px, pz, 22, 18, 0, 0, Math.PI * 2);
+      miniCtx.fill();
+
+      miniCtx.strokeStyle = isNight ? '#57687d' : '#9c968c';
+      miniCtx.lineWidth = 6;
+      miniCtx.beginPath();
+      [[86, -68], [65, -4], [45, 55], [25, 118]].forEach(([rx, rz], i) => {
+        const [mx, mz] = worldToMini(rx, rz);
+        if (i === 0) miniCtx.moveTo(mx, mz); else miniCtx.lineTo(mx, mz);
+      });
+      miniCtx.stroke();
+
+      miniCtx.lineWidth = 4.5;
+      miniCtx.beginPath();
+      [[-2, -118], [-50, -68], [-94, -26], [-70, 22], [-4, 62]].forEach(([rx, rz], i) => {
+        const [mx, mz] = worldToMini(rx, rz);
+        if (i === 0) miniCtx.moveTo(mx, mz); else miniCtx.lineTo(mx, mz);
+      });
+      miniCtx.stroke();
+
+      const [tx, tz] = worldToMini(10, -45);
+      miniCtx.fillStyle = '#c2543d';
+      miniCtx.beginPath();
+      miniCtx.roundRect(tx - 48, tz - 24, 96, 48, 24);
+      miniCtx.fill();
+      miniCtx.fillStyle = '#689459';
+      miniCtx.beginPath();
+      miniCtx.roundRect(tx - 36, tz - 16, 72, 32, 16);
+      miniCtx.fill();
+
+      miniCtx.fillStyle = isNight ? '#cad3de' : '#6d665e';
+      const [qx, qz] = worldToMini(-36, 2);
+      miniCtx.fillRect(qx, qz, 78, 12);
+      miniCtx.fillRect(qx, qz + 34, 78, 11);
+      miniCtx.fillRect(qx - 4, qz, 11, 45);
+      miniCtx.fillRect(qx + 72, qz, 10, 42);
+      miniCtx.fillRect(qx + 32, qz + 12, 6, 22);
+
+      const [ax, az] = worldToMini(0, 64);
+      miniCtx.fillRect(ax, az, 24, 32);
+
+      miniCtx.fillStyle = '#1d5d8c';
+      const [sx, sz] = worldToMini(-4, -92);
+      miniCtx.fillRect(sx, sz, 40, 18);
+
+      landmarks.forEach((lm) => {
+        const [lx, lz] = worldToMini(lm.focusPoint.x, lm.focusPoint.z);
+        miniCtx.fillStyle = lm.id === selectedId ? '#e0482d' : (isNight ? '#f4efe6' : '#2b343d');
+        miniCtx.beginPath();
+        miniCtx.arc(lx, lz, lm.id === selectedId ? 5.5 : 3.2, 0, Math.PI * 2);
+        miniCtx.fill();
+      });
+
+      const [cx, cz] = worldToMini(camera.position.x, camera.position.z);
+      const [tgx, tgz] = worldToMini(controls.target.x, controls.target.z);
+      const angle = Math.atan2(tgz - cz, tgx - cx);
+
+      miniCtx.fillStyle = 'rgba(181, 72, 48, 0.24)';
+      miniCtx.beginPath();
+      miniCtx.moveTo(cx, cz);
+      miniCtx.arc(cx, cz, 56, angle - 0.42, angle + 0.42);
+      miniCtx.closePath();
+      miniCtx.fill();
+
+      miniCtx.fillStyle = '#b54830';
+      miniCtx.beginPath();
+      miniCtx.arc(cx, cz, 4.5, 0, Math.PI * 2);
+      miniCtx.fill();
+    }
+
+    miniCanvas.addEventListener('click', (e) => {
+      const rect = miniCanvas.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width) * TERRAIN_SIZE - halfT;
+      const nz = ((e.clientY - rect.top) / rect.height) * TERRAIN_SIZE - halfT;
+
+      let best = null, bestDist = Infinity;
+      landmarks.forEach((lm) => {
+        const d = Math.hypot(lm.focusPoint.x - nx, lm.focusPoint.z - nz);
+        if (d < bestDist) { bestDist = d; best = lm; }
+      });
+      if (best) {
+        stopGuidedTour();
+        exitStreetViewFlag();
+        selectLandmark(best.id);
+      }
+    });
+
+    // Pointer Raycasting
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2();
+    let downX = 0, downY = 0, downTime = 0, activePointers = 0;
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      activePointers++;
+      if (activePointers === 1) {
+        downX = e.clientX;
+        downY = e.clientY;
+        downTime = performance.now();
+      } else {
+        downTime = 0;
+      }
+    });
+
+    renderer.domElement.addEventListener('pointerup', (e) => {
+      const wasSingle = activePointers === 1;
+      activePointers = Math.max(0, activePointers - 1);
+      if (!wasSingle || downTime === 0) return;
+
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6 || (performance.now() - downTime) > 380) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObjects(pickableMeshes, false);
+      if (hits.length > 0 && hits[0].object.userData.landmarkId) {
+        stopGuidedTour();
+        exitStreetViewFlag();
+        selectLandmark(hits[0].object.userData.landmarkId);
+      }
+    });
+
+    renderer.domElement.addEventListener('pointercancel', () => {
+      activePointers = 0;
+      downTime = 0;
+    });
+
+    renderer.domElement.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || activePointers > 0) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObjects(pickableMeshes, false);
+      renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'grab';
+    });
+
+    // ------------------------------------------------------------
+    // 12. Resize & Render Loop
+    // ------------------------------------------------------------
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth, h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      composer.setSize(w, h);
+      bloomPass.resolution.set(w, h);
+      labelRenderer.setSize(w, h);
+    });
+
+    const clock = new THREE.Clock();
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      if (camAnim.active) {
+        camAnim.progress += dt / camAnim.duration;
+        if (camAnim.progress >= 1) {
+          camAnim.progress = 1;
+          camAnim.active = false;
+        }
+        const k = easeOutCubic(camAnim.progress);
+        camera.position.lerpVectors(camAnim.fromPos, camAnim.toPos, k);
+        controls.target.lerpVectors(camAnim.fromTarget, camAnim.toTarget, k);
+      }
+
+      if (highlightRing.visible) {
+        highlightRing.scale.setScalar(1 + Math.sin(performance.now() * 0.0045) * 0.075);
+      }
+
+      updateThematicAnimation(dt);
+      controls.update();
+      drawMinimap();
+
+      composer.render();
+      labelRenderer.render(scene, camera);
+    }
+
+    applyTimeMode('day');
+    animate();
+
+    requestAnimationFrame(() => {
+      const loader = document.getElementById('loader');
+      if (loader) loader.classList.add('is-hidden');
+    });
+  </script>
+</body>
+</html>
