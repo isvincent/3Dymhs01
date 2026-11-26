@@ -2,7 +2,7 @@
  * Service Worker for 楊梅高中 3D 數位地景與校園全覽 (PWA Offline & Runtime Cache)
  * Compatible with root hosting and GitHub Pages subdirectory hosting.
  */
-const CACHE_VERSION = 'ymhs-3d-pwa-v1.0.0';
+const CACHE_VERSION = 'ymhs-3d-pwa-v1.1.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

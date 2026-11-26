@@ -1369,6 +1369,13 @@
       }
     }
   </script>
+  <!-- Fetch Three.js core & addons in parallel instead of a serial import waterfall -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/controls/OrbitControls.js" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/renderers/CSS2DRenderer.js" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/EffectComposer.js" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/UnrealBloomPass.js" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/utils/BufferGeometryUtils.js" crossorigin>
 </head>
 <body data-time="day">
   <div id="loader">
@@ -1814,6 +1821,13 @@
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
     import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+    const IS_COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
+    const PREFERS_REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Mobile GPUs: cap DPR lower; desktop keeps up to 2x
+    const MAX_PIXEL_RATIO = IS_COARSE_POINTER ? 1.75 : 2;
+    let pixelRatioCap = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
 
     // ------------------------------------------------------------
     // 1. Scene, PBR Environment, Post-Processing & Camera Controls
@@ -1839,8 +1853,10 @@
 
     camera.position.copy(getResponsiveOverviewPos());
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // antialias on the default framebuffer is wasted with EffectComposer (the scene renders into an
+    // off-screen target) — MSAA is applied on the composer's render target below instead.
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(pixelRatioCap);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1850,14 +1866,24 @@
 
     // Real-time PBR Environment Reflections (for glass, solar panels, metal roofs & pond water!)
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    const envTex = pmremGenerator.fromScene(new RoomEnvironment(), 0.045).texture;
+    const envTex = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = envTex;
     scene.environmentIntensity = 0.42;
 
-    const composer = new EffectComposer(renderer);
+    pmremGenerator.dispose();
+
+    // Multisampled HalfFloat target so the post-processed scene is actually anti-aliased
+    const composerTarget = new THREE.WebGLRenderTarget(
+      Math.max(1, window.innerWidth * pixelRatioCap),
+      Math.max(1, window.innerHeight * pixelRatioCap),
+      { type: THREE.HalfFloatType, samples: IS_COARSE_POINTER ? 2 : 4 }
+    );
+    const composer = new EffectComposer(renderer, composerTarget);
+    composer.setPixelRatio(pixelRatioCap);
+    composer.setSize(Math.max(1, window.innerWidth), Math.max(1, window.innerHeight));
     composer.addPass(new RenderPass(scene, camera));
     const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      new THREE.Vector2(Math.max(2, window.innerWidth), Math.max(2, window.innerHeight)),
       0.22,
       0.52,
       0.86
@@ -1890,6 +1916,11 @@
       progress: 0,
       duration: 0.95
     };
+
+    // Render-on-demand: when the animation is paused and nothing moves, the GPU idles
+    let dirtyFrames = 2;
+    function markDirty(frames = 2) { dirtyFrames = Math.max(dirtyFrames, frames); }
+    controls.addEventListener('change', () => markDirty());
 
     function flyTo(targetPos, camPos, duration = 0.95) {
       camAnim.fromPos.copy(camera.position);
@@ -2468,19 +2499,24 @@
       group.add(roadMesh);
 
       if (addCenterLine) {
+        // All dashes of one road are baked into a single geometry (1 draw call instead of ~70)
+        const dashGeos = [];
+        const dummy = new THREE.Object3D();
         for (let i = 2; i < spaced.length - 2; i += 4) {
           const p0 = spaced[i];
           const p1 = spaced[Math.min(spaced.length - 1, i + 1)];
-          const dash = new THREE.Mesh(
-            new THREE.PlaneGeometry(0.28, p0.distanceTo(p1) * 0.9),
-            MATS.roadLine
-          );
-          dash.rotation.x = -Math.PI / 2;
+          const dg = new THREE.PlaneGeometry(0.28, p0.distanceTo(p1) * 0.9);
+          dummy.rotation.set(-Math.PI / 2, 0, -Math.atan2(p1.x - p0.x, p1.z - p0.z));
           const midX = (p0.x + p1.x) * 0.5;
           const midZ = (p0.z + p1.z) * 0.5;
-          dash.position.set(midX, getTerrainHeight(midX, midZ) + yLift + 0.03, midZ);
-          dash.rotation.z = -Math.atan2(p1.x - p0.x, p1.z - p0.z);
-          group.add(dash);
+          dummy.position.set(midX, getTerrainHeight(midX, midZ) + yLift + 0.03, midZ);
+          dummy.updateMatrix();
+          dg.applyMatrix4(dummy.matrix);
+          dashGeos.push(dg);
+        }
+        if (dashGeos.length) {
+          group.add(new THREE.Mesh(mergeGeometries(dashGeos, false), MATS.roadLine));
+          dashGeos.forEach((g) => g.dispose());
         }
       }
 
@@ -2604,24 +2640,92 @@
     const landmarks = [];
     const pickableMeshes = [];
 
+    /**
+     * Draw-call optimisation: every landmark is built from hundreds of small boxes. Here all static
+     * meshes that share a material (and shadow flags) under the same moving parent are baked into one
+     * BufferGeometry. Moving parents (explode floors, roof assemblies) and animated meshes (flags) stay
+     * separate so animations keep working. Each landmark gets ONE private clone per material, so
+     * selection highlighting still only tints that landmark.
+     */
+    function mergeLandmarkMeshes(group) {
+      const dynamicSet = new Set([...explodeParts.map((p) => p.obj), ...wavingFlags]);
+      const matClones = new Map();
+      const cloneMat = (mat) => {
+        if (!matClones.has(mat)) {
+          const c = mat.clone();
+          if (windowMaterials.includes(mat)) windowMaterials.push(c);
+          matClones.set(mat, c);
+        }
+        return matClones.get(mat);
+      };
+
+      group.updateMatrixWorld(true);
+      const all = [];
+      group.traverse((c) => { if (c.isMesh) all.push(c); });
+
+      const result = [];
+      const buckets = new Map();
+      all.forEach((mesh) => {
+        if (dynamicSet.has(mesh) || mesh.isInstancedMesh || Array.isArray(mesh.material)) {
+          mesh.material = Array.isArray(mesh.material) ? mesh.material.map(cloneMat) : cloneMat(mesh.material);
+          result.push(mesh);
+          return;
+        }
+        let root = mesh.parent;
+        while (root !== group && !dynamicSet.has(root)) root = root.parent;
+        const key = `${root.uuid}|${mesh.material.uuid}|${mesh.castShadow ? 1 : 0}${mesh.receiveShadow ? 1 : 0}`;
+        if (!buckets.has(key)) buckets.set(key, { root, mat: mesh.material, cast: mesh.castShadow, recv: mesh.receiveShadow, items: [] });
+        buckets.get(key).items.push(mesh);
+      });
+
+      const inv = new THREE.Matrix4();
+      const rel = new THREE.Matrix4();
+      buckets.forEach((b) => {
+        if (b.items.length === 1) {
+          const m = b.items[0];
+          m.material = cloneMat(m.material);
+          result.push(m);
+          return;
+        }
+        inv.copy(b.root.matrixWorld).invert();
+        let geos = b.items.map((m) => {
+          rel.multiplyMatrices(inv, m.matrixWorld);
+          const g = m.geometry.clone();
+          g.applyMatrix4(rel);
+          g.clearGroups();
+          return g;
+        });
+        const mixedIndex = geos.some((g) => g.index) && geos.some((g) => !g.index);
+        if (mixedIndex) geos = geos.map((g) => (g.index ? g.toNonIndexed() : g));
+        const merged = mergeGeometries(geos, false);
+        geos.forEach((g) => g.dispose());
+        if (!merged) {
+          b.items.forEach((m) => { m.material = cloneMat(m.material); result.push(m); });
+          return;
+        }
+        merged.computeBoundingSphere();
+        const mergedMesh = new THREE.Mesh(merged, cloneMat(b.mat));
+        mergedMesh.castShadow = b.cast;
+        mergedMesh.receiveShadow = b.recv;
+        b.items.forEach((m) => m.parent.remove(m));
+        b.root.add(mergedMesh);
+        result.push(mergedMesh);
+      });
+      return result;
+    }
+
     function registerLandmark({
       id, name, shortName, category, categoryLabel, metrics,
       summary, specs, focusPoint, camOffset, group, pinOffset = new THREE.Vector3(0, 8, 0)
     }) {
-      const meshes = [];
-      group.traverse((child) => {
-        if (child.isMesh) {
-          const isTrackedWin = windowMaterials.includes(child.material);
-          child.material = child.material.clone();
-          if (isTrackedWin) windowMaterials.push(child.material);
-
-          child.userData.landmarkId = id;
-          child.userData.isWindow = isTrackedWin;
-          child.userData.origEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0x000000);
-          child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
-          meshes.push(child);
-          pickableMeshes.push(child);
-        }
+      const meshes = mergeLandmarkMeshes(group);
+      meshes.forEach((child) => {
+        const isTrackedWin = windowMaterials.includes(child.material);
+        child.userData.landmarkId = id;
+        child.userData.isWindow = isTrackedWin;
+        child.userData.origEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0x000000);
+        child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
+        pickableMeshes.push(child);
       });
 
       const pinEl = document.createElement('button');
@@ -4090,12 +4194,15 @@
       });
       for (let c = 0; c < 6; c++) {
         const cg = new THREE.Group();
+        const puffGeos = [];
         for (let p = 0; p < 4; p++) {
-          const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(6 + (p % 2) * 3, 1), cloudMat);
-          puff.position.set((p - 1.5) * 6.5, (p % 2) * 1.6, (p % 3 - 1) * 2.5);
-          puff.scale.set(1.5, 0.55, 1.0);
-          cg.add(puff);
+          const pg = new THREE.IcosahedronGeometry(6 + (p % 2) * 3, 1);
+          pg.scale(1.5, 0.55, 1.0);
+          pg.translate((p - 1.5) * 6.5, (p % 2) * 1.6, (p % 3 - 1) * 2.5);
+          puffGeos.push(pg);
         }
+        cg.add(new THREE.Mesh(mergeGeometries(puffGeos, false), cloudMat));
+        puffGeos.forEach((g) => g.dispose());
         cg.position.set(-140 + c * 58, 66 + (c % 3) * 8, -155 + (c % 2) * 35);
         scene.add(cg);
         clouds.push({ group: cg, speed: 1.8 + (c % 3) * 0.6 });
@@ -4272,38 +4379,64 @@
       return new THREE.Vector3(-sh + Math.cos(ang) * radius, 0, Math.sin(ang) * radius);
     }
 
+    const PHASE_TEXT = {
+      lock: ['校舍立體結構拆解（常駐）', '透視悅知樓 5 層圖書館核心與活動中心溫水泳池'],
+      p1: ['階段 1｜梅岡通學與操場脈動', '公車通學・400m 跑道運動・埤塘白鷺飛翔'],
+      p2: ['階段 2｜核心校舍 3D 結構拆解', '悅知樓五層樓板抬升・活動中心屋頂與地下泳池'],
+      p3: ['階段 3｜台地日照與太陽能綠電', '高山頂日軌陰影變化・光電球場潔淨能源輸送']
+    };
+    let lastPhaseKey = null;
+    let lastTagsOn = null;
+    let lastScrubValue = -1;
+
     function updateThematicAnimation(dt, forceUpdate = false) {
       if (isPlaying && !forceUpdate) {
         animTime = (animTime + dt) % CYCLE_DURATION;
-        scrubber.value = String(Math.round((animTime / CYCLE_DURATION) * 1000));
+        const sv = Math.round((animTime / CYCLE_DURATION) * 1000);
+        if (sv !== lastScrubValue) { lastScrubValue = sv; scrubber.value = String(sv); }
       }
 
       const cycleNorm = animTime / CYCLE_DURATION;
 
       let targetExplode = 0;
+      let phaseKey;
       if (manualExplodeLock) {
         targetExplode = 1;
-        phaseTitle.textContent = '校舍立體結構拆解（常駐）';
-        phaseSub.textContent = '透視悅知樓 5 層圖書館核心與活動中心溫水泳池';
+        phaseKey = 'lock';
       } else if (animTime < 8.0) {
         targetExplode = 0;
-        phaseTitle.textContent = '階段 1｜梅岡通學與操場脈動';
-        phaseSub.textContent = '公車通學・400m 跑道運動・埤塘白鷺飛翔';
+        phaseKey = 'p1';
       } else if (animTime < 16.5) {
         targetExplode = smoothstep(8.0, 10.2, animTime) * (1.0 - smoothstep(14.3, 16.5, animTime));
-        phaseTitle.textContent = '階段 2｜核心校舍 3D 結構拆解';
-        phaseSub.textContent = '悅知樓五層樓板抬升・活動中心屋頂與地下泳池';
+        phaseKey = 'p2';
       } else {
         targetExplode = 0;
-        phaseTitle.textContent = '階段 3｜台地日照與太陽能綠電';
-        phaseSub.textContent = '高山頂日軌陰影變化・光電球場潔淨能源輸送';
+        phaseKey = 'p3';
+      }
+      // Only touch the DOM when the phase actually changes (was rewriting text every frame)
+      if (phaseKey !== lastPhaseKey) {
+        lastPhaseKey = phaseKey;
+        phaseTitle.textContent = PHASE_TEXT[phaseKey][0];
+        phaseSub.textContent = PHASE_TEXT[phaseKey][1];
       }
 
+      const prevExplode = currentExplode;
       currentExplode = THREE.MathUtils.lerp(currentExplode, targetExplode, forceUpdate ? 1 : Math.min(1, dt * 7));
-      explodeParts.forEach((part) => {
-        part.obj.position.y = part.baseY + part.liftY * currentExplode;
-        if (part.tagEl) part.tagEl.style.opacity = currentExplode > 0.55 ? '1' : '0';
-      });
+      if (Math.abs(currentExplode - targetExplode) < 1e-4) currentExplode = targetExplode;
+      if (currentExplode !== prevExplode || forceUpdate) {
+        markDirty();
+        const tagsOn = currentExplode > 0.55;
+        explodeParts.forEach((part) => {
+          part.obj.position.y = part.baseY + part.liftY * currentExplode;
+        });
+        if (tagsOn !== lastTagsOn) {
+          lastTagsOn = tagsOn;
+          explodeParts.forEach((part) => { if (part.tagEl) part.tagEl.style.opacity = tagsOn ? '1' : '0'; });
+        }
+      }
+
+      // Everything below is pure motion — skip it entirely while paused (unless scrubbing)
+      if (!isPlaying && !forceUpdate) return;
 
       vehicles.forEach((v) => {
         let u = (animTime * v.speed + v.offset) % 1;
@@ -4666,8 +4799,13 @@
       return [((wx + halfT) / TERRAIN_SIZE) * size, ((wz + halfT) / TERRAIN_SIZE) * size];
     }
 
+    let miniSig = '';
     function drawMinimap() {
       if (window.innerWidth <= 920) return;
+      // Redraw only when camera, selection or lighting mode changed (was a full redraw every frame)
+      const sig = `${camera.position.x.toFixed(1)},${camera.position.z.toFixed(1)},${controls.target.x.toFixed(1)},${controls.target.z.toFixed(1)},${selectedId},${currentTimeMode}`;
+      if (sig === miniSig) return;
+      miniSig = sig;
       const w = miniCanvas.width;
       const isNight = currentTimeMode === 'night';
 
@@ -4806,14 +4944,25 @@
       downTime = 0;
     });
 
+    // Hover cursor: raycast at most once per frame instead of on every mousemove event
+    let hoverQueued = false;
+    let hoverX = 0, hoverY = 0;
+    const hoverNDC = new THREE.Vector2();
     renderer.domElement.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse' || activePointers > 0) return;
-      const rect = renderer.domElement.getBoundingClientRect();
-      pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(pointerNDC, camera);
-      const hits = raycaster.intersectObjects(pickableMeshes, false);
-      renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'grab';
+      hoverX = e.clientX; hoverY = e.clientY;
+      if (hoverQueued) return;
+      hoverQueued = true;
+      requestAnimationFrame(() => {
+        hoverQueued = false;
+        const rect = renderer.domElement.getBoundingClientRect();
+        hoverNDC.x = ((hoverX - rect.left) / rect.width) * 2 - 1;
+        hoverNDC.y = -((hoverY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(hoverNDC, camera);
+        const hit = raycaster.intersectObjects(pickableMeshes, false).length > 0;
+        const cur = hit ? 'pointer' : 'grab';
+        if (renderer.domElement.style.cursor !== cur) renderer.domElement.style.cursor = cur;
+      });
     });
 
     // ------------------------------------------------------------
@@ -4891,21 +5040,60 @@
       });
     }
 
+    let currentPixelRatio = pixelRatioCap;
+    function applyPixelRatio(pr) {
+      currentPixelRatio = pr;
+      renderer.setPixelRatio(pr);
+      composer.setPixelRatio(pr);
+      markDirty();
+    }
+
     function handleResize() {
-      const w = window.innerWidth, h = Math.max(1, window.innerHeight);
+      // Ignore transient 0×0 sizes (hidden tab / collapsed iframe) — they create zero-size framebuffers
+      const w = window.innerWidth, h = window.innerHeight;
+      if (w < 2 || h < 2) return;
       camera.aspect = w / h;
       const aspect = w / h;
       camera.fov = aspect < 0.85 ? THREE.MathUtils.clamp(40 + (0.85 - aspect) * 26, 40, 53) : 40;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      pixelRatioCap = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+      renderer.setPixelRatio(Math.min(currentPixelRatio, pixelRatioCap));
+      composer.setPixelRatio(Math.min(currentPixelRatio, pixelRatioCap));
       renderer.setSize(w, h);
       composer.setSize(w, h);
-      bloomPass.resolution.set(w, h);
       labelRenderer.setSize(w, h);
+      markDirty();
     }
 
-    window.addEventListener('resize', handleResize);
+    let resizeRaf = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(handleResize);
+    });
     window.addEventListener('orientationchange', () => setTimeout(handleResize, 120));
+
+    // Any UI interaction may change the scene → render a few frames
+    ['pointerdown', 'click', 'input', 'keydown', 'wheel'].forEach((ev) =>
+      document.addEventListener(ev, () => markDirty(4), { passive: true, capture: true })
+    );
+
+    // Adaptive resolution: if the GPU can't hold ~45fps, step pixel ratio down (never below 1)
+    const perf = { acc: 0, frames: 0, cooldown: 2.0 };
+    function adaptQuality(dt) {
+      perf.cooldown -= dt;
+      perf.acc += dt; perf.frames++;
+      if (perf.acc < 1.5) return;
+      const avg = perf.acc / perf.frames;
+      perf.acc = 0; perf.frames = 0;
+      if (perf.cooldown > 0) return;
+      if (avg > 1 / 45 && currentPixelRatio > 1) {
+        applyPixelRatio(Math.max(1, currentPixelRatio - 0.25));
+        perf.cooldown = 2.0;
+      } else if (avg < 1 / 58 && currentPixelRatio < pixelRatioCap) {
+        applyPixelRatio(Math.min(pixelRatioCap, currentPixelRatio + 0.25));
+        perf.cooldown = 4.0;
+      }
+    }
 
     const clock = new THREE.Clock();
     function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -4915,6 +5103,7 @@
       const dt = Math.min(clock.getDelta(), 0.05);
 
       if (camAnim.active) {
+        markDirty();
         camAnim.progress += dt / camAnim.duration;
         if (camAnim.progress >= 1) {
           camAnim.progress = 1;
@@ -4927,15 +5116,24 @@
 
       if (highlightRing.visible) {
         highlightRing.scale.setScalar(1 + Math.sin(performance.now() * 0.0045) * 0.075);
+        markDirty();
       }
 
       updateThematicAnimation(dt);
-      controls.update();
+      if (isPlaying) markDirty();
+      controls.update(); // fires 'change' → markDirty while damping
       drawMinimap();
+
+      if (dirtyFrames <= 0) { renderedLastFrame = false; return; } // idle: skip GPU work entirely
+      dirtyFrames--;
 
       composer.render();
       labelRenderer.render(scene, camera);
+      // Only measure continuous rendering, otherwise idle gaps look like slow frames
+      if (renderedLastFrame && !document.hidden) adaptQuality(dt);
+      renderedLastFrame = true;
     }
+    let renderedLastFrame = false;
 
     // Apply initial mode & handle PWA Manifest Shortcut URL parameters (?time=night, ?view=explode, ?landmark=...)
     const urlParams = new URLSearchParams(window.location.search);
@@ -4945,6 +5143,9 @@
     if (metaThemeColor && THEME_HEX[currentTimeMode]) {
       metaThemeColor.setAttribute('content', THEME_HEX[currentTimeMode]);
     }
+
+    // Respect OS "reduce motion": start with the thematic animation paused (user can still press play)
+    if (PREFERS_REDUCED_MOTION) setPlayingState(false);
 
     const initView = urlParams.get('view');
     const initLandmark = urlParams.get('landmark');
